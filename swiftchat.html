@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>SwiftChat — Messenger</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Syne:wght@600;700;800&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#09090f;--surface:#101018;--panel:#161622;--border:#1f1f30;
+  --accent:#00e5a0;--accent2:#7b5ea7;--text:#e2e2f0;--muted:#55556a;
+  --font:'DM Mono',monospace;--head:'Syne',sans-serif;
+}
+body{background:var(--bg);color:var(--text);font-family:var(--font);height:100vh;overflow:hidden;display:flex;flex-direction:column;}
+
+/* Login */
+#login-screen{
+  height:100vh;display:flex;align-items:center;justify-content:center;
+  background:radial-gradient(ellipse at center, rgba(0,229,160,0.04) 0%, transparent 60%);
+}
+.login-box{width:360px;background:var(--surface);border:1px solid var(--border);padding:2.5rem;}
+.login-logo{font-family:var(--head);font-size:1.5rem;font-weight:800;color:var(--accent);margin-bottom:0.4rem;}
+.login-sub{color:var(--muted);font-size:0.78rem;margin-bottom:1.8rem;}
+.choose-label{font-size:0.65rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-bottom:0.7rem;}
+.user-options{display:flex;flex-direction:column;gap:0.5rem;margin-bottom:1.5rem;}
+.user-option{
+  display:flex;align-items:center;gap:0.8rem;padding:0.75rem;
+  background:var(--panel);border:1px solid var(--border);cursor:pointer;
+  transition:all 0.15s;
+}
+.user-option:hover{border-color:var(--accent);background:rgba(0,229,160,0.05);}
+.user-option.selected{border-color:var(--accent);background:rgba(0,229,160,0.08);}
+.uo-avatar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.9rem;font-family:var(--head);}
+.uo-name{font-size:0.88rem;}
+.uo-status{font-size:0.68rem;color:var(--muted);}
+.login-btn{
+  width:100%;background:var(--accent);color:#09090f;border:none;
+  font-family:var(--font);font-weight:500;font-size:0.88rem;
+  padding:0.8rem;cursor:pointer;transition:opacity 0.15s;
+}
+.login-btn:hover{opacity:0.85;}
+
+/* App layout */
+#app{display:none;flex:1;overflow:hidden;}
+.app-wrap{display:flex;height:100vh;}
+
+/* Sidebar */
+.sidebar{
+  width:260px;background:var(--surface);border-right:1px solid var(--border);
+  display:flex;flex-direction:column;flex-shrink:0;
+}
+.sb-header{
+  padding:1rem 1.2rem;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:0.7rem;
+}
+.sb-logo{font-family:var(--head);font-size:1rem;font-weight:800;color:var(--accent);}
+.sb-search{
+  margin:0.8rem;background:var(--panel);border:1px solid var(--border);
+  color:var(--text);font-family:var(--font);font-size:0.78rem;
+  padding:0.5rem 0.8rem;outline:none;
+}
+.sb-search:focus{border-color:var(--accent);}
+.sb-search::placeholder{color:var(--muted);}
+.sb-label{font-size:0.6rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--muted);padding:0 1.2rem 0.4rem;}
+.convo-list{flex:1;overflow-y:auto;}
+.convo-list::-webkit-scrollbar{width:3px;}
+.convo-list::-webkit-scrollbar-thumb{background:var(--border);}
+
+.convo-item{
+  display:flex;align-items:center;gap:0.8rem;padding:0.8rem 1.2rem;
+  cursor:pointer;transition:background 0.15s;border-left:2px solid transparent;
+  position:relative;
+}
+.convo-item:hover{background:var(--panel);}
+.convo-item.active{background:rgba(0,229,160,0.06);border-left-color:var(--accent);}
+.convo-avatar{
+  width:38px;height:38px;border-radius:50%;display:flex;align-items:center;
+  justify-content:center;font-weight:700;font-size:0.9rem;font-family:var(--head);
+  flex-shrink:0;position:relative;
+}
+.online-ring{
+  position:absolute;bottom:1px;right:1px;width:10px;height:10px;
+  border-radius:50%;border:2px solid var(--surface);
+}
+.convo-info{flex:1;min-width:0;}
+.convo-name{font-size:0.85rem;font-weight:600;display:flex;justify-content:space-between;}
+.convo-time{font-size:0.65rem;color:var(--muted);}
+.convo-preview{font-size:0.72rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:0.1rem;}
+.unread-badge{
+  background:var(--accent);color:#09090f;font-size:0.6rem;font-weight:700;
+  padding:0.1rem 0.45rem;border-radius:10px;
+}
+
+.sb-footer{
+  padding:0.8rem 1.2rem;border-top:1px solid var(--border);
+  display:flex;align-items:center;gap:0.7rem;
+}
+.sb-user-name{font-size:0.82rem;font-weight:600;}
+.sb-user-status{font-size:0.65rem;color:var(--muted);}
+.logout-btn{margin-left:auto;background:transparent;border:none;color:var(--muted);cursor:pointer;font-size:1rem;transition:color 0.15s;}
+.logout-btn:hover{color:var(--accent);}
+
+/* Chat area */
+.chat-area{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+
+/* Chat header */
+.chat-header{
+  background:var(--surface);border-bottom:1px solid var(--border);
+  padding:0.9rem 1.5rem;display:flex;align-items:center;gap:0.8rem;flex-shrink:0;
+}
+.chat-header-info{flex:1;}
+.chat-header-name{font-family:var(--head);font-size:0.95rem;font-weight:700;}
+.chat-header-status{font-size:0.7rem;color:var(--accent);}
+.chat-header-actions{display:flex;gap:0.5rem;}
+.icon-btn{background:transparent;border:1px solid var(--border);color:var(--muted);padding:0.4rem 0.7rem;cursor:pointer;transition:all 0.15s;font-size:0.85rem;}
+.icon-btn:hover{border-color:var(--accent);color:var(--accent);}
+
+/* Messages */
+.messages{
+  flex:1;overflow-y:auto;padding:1.2rem 1.5rem;
+  display:flex;flex-direction:column;gap:0.5rem;
+}
+.messages::-webkit-scrollbar{width:3px;}
+.messages::-webkit-scrollbar-thumb{background:var(--border);}
+
+.msg-row{display:flex;align-items:flex-end;gap:0.6rem;}
+.msg-row.own{flex-direction:row-reverse;}
+.msg-avatar{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:700;font-family:var(--head);flex-shrink:0;}
+.msg-bubble{
+  max-width:65%;padding:0.6rem 0.9rem;font-size:0.85rem;line-height:1.5;
+  background:var(--panel);border:1px solid var(--border);position:relative;
+}
+.msg-row.own .msg-bubble{background:rgba(0,229,160,0.12);border-color:rgba(0,229,160,0.2);}
+.msg-time{font-size:0.6rem;color:var(--muted);margin-top:0.2rem;text-align:right;}
+.msg-row.own .msg-time{text-align:left;}
+.msg-group{display:flex;flex-direction:column;gap:0.15rem;max-width:65%;}
+.msg-row.own .msg-group{align-items:flex-end;}
+
+/* Date divider */
+.date-divider{
+  display:flex;align-items:center;gap:0.8rem;margin:0.8rem 0;
+}
+.date-line{flex:1;height:1px;background:var(--border);}
+.date-label{font-size:0.65rem;color:var(--muted);letter-spacing:0.1em;}
+
+/* Typing indicator */
+.typing-indicator{
+  display:none;align-items:center;gap:0.6rem;padding:0 1.5rem 0.5rem;
+  font-size:0.72rem;color:var(--muted);
+}
+.typing-dots{display:flex;gap:3px;}
+.typing-dot{
+  width:5px;height:5px;border-radius:50%;background:var(--muted);
+  animation:typingBounce 1.2s infinite;
+}
+.typing-dot:nth-child(2){animation-delay:0.2s;}
+.typing-dot:nth-child(3){animation-delay:0.4s;}
+@keyframes typingBounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-5px)}}
+
+/* Input area */
+.input-area{
+  background:var(--surface);border-top:1px solid var(--border);
+  padding:0.9rem 1.5rem;display:flex;gap:0.7rem;align-items:flex-end;flex-shrink:0;
+}
+.msg-input{
+  flex:1;background:var(--panel);border:1px solid var(--border);
+  color:var(--text);font-family:var(--font);font-size:0.85rem;
+  padding:0.65rem 1rem;outline:none;resize:none;max-height:120px;
+  transition:border-color 0.15s;
+}
+.msg-input:focus{border-color:var(--accent);}
+.msg-input::placeholder{color:var(--muted);}
+.send-btn{
+  background:var(--accent);color:#09090f;border:none;
+  font-family:var(--font);font-size:0.85rem;padding:0.65rem 1.2rem;
+  cursor:pointer;transition:opacity 0.15s;flex-shrink:0;
+}
+.send-btn:hover{opacity:0.85;}
+.emoji-btn{background:transparent;border:1px solid var(--border);color:var(--muted);padding:0.65rem 0.8rem;cursor:pointer;font-size:0.9rem;transition:all 0.15s;}
+.emoji-btn:hover{border-color:var(--accent);}
+
+/* Empty state */
+.chat-empty{
+  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  color:var(--muted);text-align:center;padding:2rem;
+}
+.chat-empty-icon{font-size:3rem;margin-bottom:1rem;opacity:0.3;}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">SwiftChat</div>
+    <div class="login-sub">// instant messaging, no fluff</div>
+    <div class="choose-label">Sign in as</div>
+    <div class="user-options">
+      <div class="user-option selected" onclick="selectUser('sarweshwor',this)">
+        <div class="uo-avatar" style="background:linear-gradient(135deg,#00e5a0,#4d96ff);color:#09090f">S</div>
+        <div><div class="uo-name">Sarweshwor</div><div class="uo-status">🟢 online</div></div>
+      </div>
+      <div class="user-option" onclick="selectUser('dev',this)">
+        <div class="uo-avatar" style="background:linear-gradient(135deg,#ff4d6d,#c77dff);color:#fff">D</div>
+        <div><div class="uo-name">Dev Account</div><div class="uo-status">🟡 away</div></div>
+      </div>
+    </div>
+    <button class="login-btn" onclick="login()">Enter Chat →</button>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="app-wrap">
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <div class="sb-header">
+        <div class="sb-logo">SwiftChat</div>
+      </div>
+      <input class="sb-search" placeholder="Search conversations…" oninput="filterConvos(this.value)"/>
+      <div class="sb-label">Messages</div>
+      <div class="convo-list" id="convo-list"></div>
+      <div class="sb-footer">
+        <div class="convo-avatar" id="sb-avatar" style="width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-family:'Syne',sans-serif;background:linear-gradient(135deg,#00e5a0,#4d96ff);color:#09090f"></div>
+        <div>
+          <div class="sb-user-name" id="sb-name">Sarweshwor</div>
+          <div class="sb-user-status">🟢 online</div>
+        </div>
+        <button class="logout-btn" onclick="logout()">⏻</button>
+      </div>
+    </div>
+
+    <!-- Chat -->
+    <div class="chat-area" id="chat-area">
+      <div class="chat-empty" id="chat-empty">
+        <div class="chat-empty-icon">💬</div>
+        <div>Select a conversation to start chatting</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const ME={
+  sarweshwor:{name:'Sarweshwor',avatar:'S',color:'linear-gradient(135deg,#00e5a0,#4d96ff)',textColor:'#09090f'},
+  dev:{name:'Dev',avatar:'D',color:'linear-gradient(135deg,#ff4d6d,#c77dff)',textColor:'#fff'},
+};
+const CONTACTS=[
+  {id:'alex',name:'Alex Chen',avatar:'A',color:'#ff4d6d',online:true,lastSeen:'now',
+   messages:[
+    {from:'alex',text:"Hey! Just pushed the new feature to staging. Can you review?",time:'10:02 AM'},
+    {from:'me',text:"On it! Give me 20 mins.",time:'10:05 AM'},
+    {from:'alex',text:"No rush 🙏 Also — did you see the new CSS Grid spec? Game changer.",time:'10:08 AM'},
+    {from:'me',text:"Yeah! Subgrid support is finally everywhere. About time.",time:'10:12 AM'},
+    {from:'alex',text:"We should refactor the dashboard layout using it 👀",time:'10:13 AM'},
+   ]},
+  {id:'sarah',name:'Sarah Kim',avatar:'S2',color:'#4d96ff',online:true,lastSeen:'now',
+   messages:[
+    {from:'sarah',text:"Did you finish the IT7537 assignment?",time:'Yesterday'},
+    {from:'me',text:"Yeah submitted it last night. BnB booking system — PHP + MySQL.",time:'Yesterday'},
+    {from:'sarah',text:"Nice! Did you deploy it live?",time:'Yesterday'},
+    {from:'me',text:"InfinityFree hosting via FileZilla. Works great.",time:'Yesterday'},
+    {from:'sarah',text:"Legend 🔥",time:'Yesterday'},
+   ]},
+  {id:'marcus',name:'Marcus Dev',avatar:'M',color:'#c77dff',online:false,lastSeen:'2h ago',
+   messages:[
+    {from:'marcus',text:"MongoDB Atlas free tier dropped their always-on feature... 😭",time:'Mon'},
+    {from:'me',text:"I know! Had to migrate my demo app. Annoying.",time:'Mon'},
+    {from:'marcus',text:"Moving to Railway.app. Way more flexible.",time:'Mon'},
+   ]},
+  {id:'priya',name:'Priya Singh',avatar:'P',color:'#ffd60a',online:true,lastSeen:'now',
+   messages:[
+    {from:'priya',text:"Can I borrow your React notes from last week?",time:'Tue'},
+    {from:'me',text:"Sure! Sharing now. Focus on the useReducer patterns.",time:'Tue'},
+    {from:'priya',text:"You're a lifesaver 🙌",time:'Tue'},
+   ]},
+  {id:'group',name:'Dev Squad 🔥',avatar:'👥',color:'#00e5a0',online:true,lastSeen:'now',isGroup:true,
+   members:['Alex','Sarah','Marcus','Priya','You'],
+   messages:[
+    {from:'alex',text:"Sprint review in 10 mins! Everyone ready?",time:'11:00 AM'},
+    {from:'sarah',text:"Ready 👍",time:'11:01 AM'},
+    {from:'marcus',text:"Give me 2 mins",time:'11:02 AM'},
+    {from:'me',text:"On the call now",time:'11:03 AM'},
+    {from:'priya',text:"Coming!",time:'11:04 AM'},
+   ]},
+];
+
+let currentUser='sarweshwor';
+let activeConvo=null;
+let typingTimer=null;
+
+function selectUser(u,el){
+  currentUser=u;
+  document.querySelectorAll('.user-option').forEach(x=>x.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+function login(){
+  document.getElementById('login-screen').style.display='none';
+  document.getElementById('app').style.display='flex';
+  const me=ME[currentUser];
+  document.getElementById('sb-name').textContent=me.name;
+  document.getElementById('sb-avatar').textContent=me.avatar;
+  document.getElementById('sb-avatar').style.background=me.color;
+  document.getElementById('sb-avatar').style.color=me.textColor;
+  renderConvoList(CONTACTS);
+}
+function logout(){document.getElementById('app').style.display='none';document.getElementById('login-screen').style.display='flex';}
+
+function renderConvoList(contacts){
+  const el=document.getElementById('convo-list');
+  el.innerHTML=contacts.map(c=>{
+    const last=c.messages[c.messages.length-1];
+    const unread=Math.floor(Math.random()*3);
+    return `<div class="convo-item${activeConvo===c.id?' active':''}" onclick="openConvo('${c.id}')">
+      <div class="convo-avatar" style="background:${c.color};color:${c.id==='group'?'#09090f':'#fff'};font-family:'Syne',sans-serif;width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.85rem;flex-shrink:0;position:relative;">
+        ${c.avatar.length>1?'<span style="font-size:1.1rem">'+c.avatar+'</span>':c.avatar}
+        ${c.online?'<div class="online-ring" style="background:#00e5a0"></div>':''}
+      </div>
+      <div class="convo-info">
+        <div class="convo-name">${c.name} ${unread>0&&activeConvo!==c.id?`<span class="unread-badge">${unread}</span>`:''}</div>
+        <div class="convo-preview">${last.from==='me'?'You: ':c.isGroup?last.from+': ':''}${last.text}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function filterConvos(q){
+  const filtered=CONTACTS.filter(c=>c.name.toLowerCase().includes(q.toLowerCase()));
+  renderConvoList(filtered);
+}
+
+function openConvo(id){
+  activeConvo=id;
+  renderConvoList(CONTACTS);
+  const c=CONTACTS.find(x=>x.id===id);
+  const chatArea=document.getElementById('chat-area');
+  const me=ME[currentUser];
+
+  chatArea.innerHTML=`
+    <div class="chat-header">
+      <div class="convo-avatar" style="background:${c.color};color:${id==='group'?'#09090f':'#fff'};width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.85rem;font-family:'Syne',sans-serif;flex-shrink:0">
+        ${c.avatar.length>1?'<span style="font-size:1rem">'+c.avatar+'</span>':c.avatar}
+      </div>
+      <div class="chat-header-info">
+        <div class="chat-header-name">${c.name}${c.isGroup?` <span style="font-size:0.65rem;color:var(--muted);font-weight:400">(${c.members.join(', ')})</span>`:''}</div>
+        <div class="chat-header-status">${c.online?'🟢 Online':('Last seen '+c.lastSeen)}</div>
+      </div>
+      <div class="chat-header-actions">
+        <button class="icon-btn">📞</button>
+        <button class="icon-btn">📹</button>
+        <button class="icon-btn">⋯</button>
+      </div>
+    </div>
+    <div class="messages" id="messages">
+      <div class="date-divider"><div class="date-line"></div><div class="date-label">Today</div><div class="date-line"></div></div>
+      ${c.messages.map(m=>renderMsg(m,me,c)).join('')}
+    </div>
+    <div class="typing-indicator" id="typing-indicator">
+      <span>${c.name.split(' ')[0]} is typing</span>
+      <div class="typing-dots"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>
+    </div>
+    <div class="input-area">
+      <button class="emoji-btn" onclick="insertMsg('😊')">😊</button>
+      <textarea class="msg-input" id="msg-input" placeholder="Type a message…" rows="1"
+        onkeydown="handleKey(event,'${id}')" oninput="autoResize(this);triggerTyping('${id}')"></textarea>
+      <button class="send-btn" onclick="sendMsg('${id}')">Send →</button>
+    </div>
+  `;
+  scrollBottom();
+}
+
+function renderMsg(m,me,c){
+  const isOwn=m.from==='me';
+  const avatarLetter=isOwn?me.avatar:c.avatar.length>1?c.avatar[0]:c.avatar;
+  const avatarBg=isOwn?me.color:c.color;
+  const avatarText=isOwn?me.textColor:'#fff';
+  return `<div class="msg-row${isOwn?' own':''}">
+    ${!isOwn?`<div class="msg-avatar" style="background:${avatarBg};color:${avatarText}">${avatarLetter}</div>`:''}
+    <div class="msg-group">
+      <div class="msg-bubble">${escHtml(m.text)}</div>
+      <div class="msg-time">${m.time}${isOwn?' ✓✓':''}</div>
+    </div>
+    ${isOwn?`<div class="msg-avatar" style="background:${avatarBg};color:${avatarText}">${avatarLetter}</div>`:''}
+  </div>`;
+}
+
+function sendMsg(id){
+  const input=document.getElementById('msg-input');
+  const text=input.value.trim();
+  if(!text) return;
+  const c=CONTACTS.find(x=>x.id===id);
+  c.messages.push({from:'me',text,time:'Just now'});
+  const me=ME[currentUser];
+  const msgs=document.getElementById('messages');
+  msgs.insertAdjacentHTML('beforeend',renderMsg({from:'me',text,time:'Just now'},me,c));
+  input.value='';
+  autoResize(input);
+  scrollBottom();
+  renderConvoList(CONTACTS);
+  // Simulate reply
+  clearTimeout(typingTimer);
+  document.getElementById('typing-indicator').style.display='flex';
+  typingTimer=setTimeout(()=>{
+    document.getElementById('typing-indicator').style.display='none';
+    const replies=["Got it! 👍","Makes sense!","On it ✅","Interesting...","Nice one! 🚀","lol exactly","Agreed 💯","Let me check that out","Will do!","Thanks for the heads up 🙏"];
+    const reply=replies[Math.floor(Math.random()*replies.length)];
+    c.messages.push({from:c.id,text:reply,time:'Just now'});
+    const msgs2=document.getElementById('messages');
+    if(msgs2){msgs2.insertAdjacentHTML('beforeend',renderMsg({from:c.id,text:reply,time:'Just now'},me,c));scrollBottom();}
+    renderConvoList(CONTACTS);
+  },1200+Math.random()*800);
+}
+
+function triggerTyping(id){
+  // Just UI — typing indicator shown when they reply
+}
+
+function handleKey(e,id){
+  if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMsg(id);}
+}
+
+function autoResize(el){
+  el.style.height='auto';
+  el.style.height=Math.min(el.scrollHeight,120)+'px';
+}
+
+function insertMsg(emoji){
+  const input=document.getElementById('msg-input');
+  if(input){input.value+=emoji;input.focus();}
+}
+
+function scrollBottom(){
+  const msgs=document.getElementById('messages');
+  if(msgs) setTimeout(()=>msgs.scrollTop=msgs.scrollHeight,50);
+}
+
+function escHtml(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+</script>
+</body>
+</html>

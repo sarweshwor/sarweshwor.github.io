@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>SocialSphere</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Syne:wght@600;700;800&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#08080f;--surface:#101018;--panel:#141420;--border:#1e1e2e;
+  --accent:#00e5a0;--accent2:#7b5ea7;--red:#ff4d6d;--text:#e2e2f0;--muted:#555568;
+  --font:'DM Mono',monospace;--head:'Syne',sans-serif;
+}
+body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:100vh;}
+
+/* Auth screen */
+#auth-screen{
+  min-height:100vh;display:flex;align-items:center;justify-content:center;
+  background:radial-gradient(ellipse at 30% 50%, rgba(0,229,160,0.05) 0%, transparent 60%),
+             radial-gradient(ellipse at 70% 50%, rgba(123,94,167,0.05) 0%, transparent 60%);
+}
+.auth-box{
+  width:380px;background:var(--surface);border:1px solid var(--border);
+  padding:2.5rem;
+}
+.auth-logo{font-family:var(--head);font-size:1.8rem;font-weight:800;color:var(--accent);text-align:center;margin-bottom:0.3rem;}
+.auth-tagline{text-align:center;color:var(--muted);font-size:0.8rem;margin-bottom:2rem;}
+.auth-tabs{display:flex;border-bottom:1px solid var(--border);margin-bottom:1.5rem;}
+.auth-tab{flex:1;padding:0.6rem;text-align:center;font-size:0.8rem;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:all 0.15s;}
+.auth-tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+.form-field{margin-bottom:0.8rem;}
+.form-field label{display:block;font-size:0.65rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-bottom:0.3rem;}
+.form-field input{
+  width:100%;background:var(--bg);border:1px solid var(--border);
+  color:var(--text);font-family:var(--font);font-size:0.85rem;
+  padding:0.7rem;outline:none;transition:border-color 0.15s;
+}
+.form-field input:focus{border-color:var(--accent);}
+.auth-btn{
+  width:100%;background:var(--accent);color:#08080f;border:none;
+  font-family:var(--font);font-weight:500;font-size:0.9rem;
+  padding:0.85rem;cursor:pointer;margin-top:0.5rem;transition:opacity 0.15s;
+}
+.auth-btn:hover{opacity:0.85;}
+.auth-error{color:var(--red);font-size:0.75rem;margin-bottom:0.5rem;display:none;}
+
+/* App */
+#app{display:none;}
+.app-layout{display:grid;grid-template-columns:240px 1fr 280px;min-height:100vh;}
+
+/* Left nav */
+.left-nav{
+  background:var(--surface);border-right:1px solid var(--border);
+  padding:1.5rem;position:sticky;top:0;height:100vh;
+  display:flex;flex-direction:column;
+}
+.nav-logo{font-family:var(--head);font-size:1.2rem;font-weight:800;color:var(--accent);margin-bottom:2rem;}
+.nav-menu{display:flex;flex-direction:column;gap:0.3rem;}
+.nav-item{
+  display:flex;align-items:center;gap:0.8rem;padding:0.7rem 0.8rem;
+  color:var(--muted);cursor:pointer;transition:all 0.15s;border-radius:4px;
+  font-size:0.88rem;
+}
+.nav-item:hover{color:var(--text);background:var(--panel);}
+.nav-item.active{color:var(--accent);background:rgba(0,229,160,0.08);}
+.nav-icon{font-size:1.1rem;}
+.nav-badge{margin-left:auto;background:var(--accent);color:#08080f;font-size:0.6rem;padding:0.1rem 0.4rem;border-radius:10px;font-weight:600;}
+
+.user-card{
+  margin-top:auto;display:flex;align-items:center;gap:0.8rem;
+  padding:0.8rem;background:var(--panel);border:1px solid var(--border);
+}
+.avatar{
+  width:36px;height:36px;border-radius:50%;display:flex;align-items:center;
+  justify-content:center;font-size:0.9rem;font-weight:700;flex-shrink:0;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;
+  font-family:var(--head);
+}
+.user-name{font-size:0.82rem;font-weight:600;}
+.user-handle{font-size:0.68rem;color:var(--muted);}
+.logout-btn{
+  margin-left:auto;background:transparent;border:none;color:var(--muted);
+  cursor:pointer;font-size:0.9rem;transition:color 0.15s;
+}
+.logout-btn:hover{color:var(--red);}
+
+/* Feed */
+.feed{border-right:1px solid var(--border);max-height:100vh;overflow-y:auto;}
+.feed::-webkit-scrollbar{width:3px;}
+.feed::-webkit-scrollbar-thumb{background:var(--border);}
+
+.feed-header{
+  background:rgba(8,8,15,0.85);backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--border);padding:1rem 1.5rem;
+  position:sticky;top:0;z-index:10;display:flex;align-items:center;gap:0.5rem;
+}
+.feed-title{font-family:var(--head);font-size:1rem;font-weight:700;}
+
+/* Compose */
+.compose-box{
+  padding:1.2rem 1.5rem;border-bottom:1px solid var(--border);
+  display:flex;gap:0.8rem;
+}
+.compose-input{
+  flex:1;background:var(--panel);border:1px solid var(--border);
+  color:var(--text);font-family:var(--font);font-size:0.85rem;
+  padding:0.7rem 1rem;outline:none;resize:none;transition:border-color 0.15s;
+  min-height:60px;
+}
+.compose-input:focus{border-color:var(--accent);}
+.compose-footer{display:flex;align-items:center;gap:0.5rem;margin-top:0.5rem;}
+.compose-emoji{background:transparent;border:none;font-size:1rem;cursor:pointer;color:var(--muted);transition:color 0.15s;}
+.compose-emoji:hover{color:var(--accent);}
+.post-btn{
+  margin-left:auto;background:var(--accent);color:#08080f;border:none;
+  font-family:var(--font);font-size:0.8rem;font-weight:500;
+  padding:0.5rem 1.2rem;cursor:pointer;transition:opacity 0.15s;
+}
+.post-btn:hover{opacity:0.85;}
+.char-count{font-size:0.65rem;color:var(--muted);}
+
+/* Posts */
+.post{
+  padding:1.2rem 1.5rem;border-bottom:1px solid var(--border);
+  transition:background 0.15s;
+}
+.post:hover{background:rgba(255,255,255,0.01);}
+.post-header{display:flex;align-items:center;gap:0.7rem;margin-bottom:0.7rem;}
+.post-meta{flex:1;}
+.post-name{font-size:0.88rem;font-weight:600;color:var(--text);}
+.post-handle{font-size:0.72rem;color:var(--muted);}
+.post-time{font-size:0.68rem;color:var(--muted);}
+.post-body{font-size:0.88rem;line-height:1.6;margin-bottom:0.9rem;color:var(--text);}
+.post-img{width:100%;border:1px solid var(--border);margin-bottom:0.8rem;max-height:220px;object-fit:cover;display:none;}
+.post-actions{display:flex;gap:1.5rem;}
+.action-btn{
+  display:flex;align-items:center;gap:0.4rem;background:transparent;border:none;
+  color:var(--muted);font-family:var(--font);font-size:0.75rem;cursor:pointer;
+  transition:color 0.15s;padding:0;
+}
+.action-btn:hover{color:var(--accent);}
+.action-btn.liked{color:var(--red);}
+.action-btn.liked .action-icon{animation:pop 0.2s ease;}
+@keyframes pop{0%{transform:scale(1)}50%{transform:scale(1.4)}100%{transform:scale(1)}}
+
+/* Online indicator */
+.online-dot{width:8px;height:8px;border-radius:50%;background:var(--accent);display:inline-block;}
+
+/* Right panel */
+.right-panel{padding:1.5rem;position:sticky;top:0;height:100vh;overflow-y:auto;}
+.right-panel::-webkit-scrollbar{width:3px;}
+.widget{background:var(--surface);border:1px solid var(--border);padding:1rem;margin-bottom:1rem;}
+.widget-title{font-size:0.7rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--muted);margin-bottom:0.8rem;}
+
+.trending-item{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:0.4rem 0;border-bottom:1px solid var(--border);font-size:0.82rem;
+}
+.trending-item:last-child{border-bottom:none;}
+.trending-tag{color:var(--accent);}
+.trending-count{color:var(--muted);font-size:0.7rem;}
+
+.suggested-user{
+  display:flex;align-items:center;gap:0.7rem;margin-bottom:0.7rem;
+}
+.follow-btn{
+  margin-left:auto;background:transparent;border:1px solid var(--accent);
+  color:var(--accent);font-family:var(--font);font-size:0.68rem;
+  padding:0.25rem 0.7rem;cursor:pointer;transition:all 0.15s;
+}
+.follow-btn:hover{background:var(--accent);color:#08080f;}
+.follow-btn.following{border-color:var(--border);color:var(--muted);}
+
+@media(max-width:900px){
+  .app-layout{grid-template-columns:1fr;}
+  .left-nav,.right-panel{display:none;}
+}
+</style>
+</head>
+<body>
+
+<!-- AUTH -->
+<div id="auth-screen">
+  <div class="auth-box">
+    <div class="auth-logo">SocialSphere</div>
+    <div class="auth-tagline">// connect · share · discover</div>
+    <div class="auth-tabs">
+      <div class="auth-tab active" onclick="showTab('login',this)">Login</div>
+      <div class="auth-tab" onclick="showTab('register',this)">Register</div>
+    </div>
+    <div class="auth-error" id="auth-error">Invalid credentials. Try: demo / demo123</div>
+    <div id="login-form">
+      <div class="form-field"><label>Username</label><input id="l-user" placeholder="your username" value="demo"/></div>
+      <div class="form-field"><label>Password</label><input id="l-pass" type="password" placeholder="••••••••" value="demo123" onkeydown="if(event.key==='Enter')login()"/></div>
+      <button class="auth-btn" onclick="login()">Sign In →</button>
+    </div>
+    <div id="register-form" style="display:none">
+      <div class="form-field"><label>Name</label><input id="r-name" placeholder="Your Name"/></div>
+      <div class="form-field"><label>Username</label><input id="r-user" placeholder="@handle"/></div>
+      <div class="form-field"><label>Password</label><input id="r-pass" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')register()"/></div>
+      <button class="auth-btn" onclick="register()">Create Account →</button>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="app-layout">
+
+    <!-- Left Nav -->
+    <div class="left-nav">
+      <div class="nav-logo">SocialSphere</div>
+      <div class="nav-menu">
+        <div class="nav-item active" onclick="navigate('home',this)"><span class="nav-icon">🏠</span> Home</div>
+        <div class="nav-item" onclick="navigate('explore',this)"><span class="nav-icon">🔍</span> Explore</div>
+        <div class="nav-item" onclick="navigate('notifications',this)"><span class="nav-icon">🔔</span> Notifications <span class="nav-badge" id="notif-badge">3</span></div>
+        <div class="nav-item" onclick="navigate('messages',this)"><span class="nav-icon">✉️</span> Messages</div>
+        <div class="nav-item" onclick="navigate('profile',this)"><span class="nav-icon">👤</span> Profile</div>
+        <div class="nav-item" onclick="navigate('settings',this)"><span class="nav-icon">⚙️</span> Settings</div>
+      </div>
+      <div class="user-card">
+        <div class="avatar" id="nav-avatar">S</div>
+        <div>
+          <div class="user-name" id="nav-name">Sarweshwor</div>
+          <div class="user-handle" id="nav-handle">@sarweshwor</div>
+        </div>
+        <button class="logout-btn" onclick="logout()" title="Logout">⏻</button>
+      </div>
+    </div>
+
+    <!-- Main Content (view switcher) -->
+    <div class="feed" id="main-view">
+      <!-- content injected by navigate() -->
+    </div>
+
+    <!-- Right -->
+    <div class="right-panel" id="right-panel">
+      <div class="widget">
+        <div class="widget-title">Trending</div>
+        <div class="trending-item"><span class="trending-tag">#WebDev</span><span class="trending-count">2.4k posts</span></div>
+        <div class="trending-item"><span class="trending-tag">#JavaScript</span><span class="trending-count">1.8k posts</span></div>
+        <div class="trending-item"><span class="trending-tag">#React</span><span class="trending-count">1.2k posts</span></div>
+        <div class="trending-item"><span class="trending-tag">#OpenSource</span><span class="trending-count">943 posts</span></div>
+        <div class="trending-item"><span class="trending-tag">#MongoDB</span><span class="trending-count">612 posts</span></div>
+      </div>
+
+      <div class="widget">
+        <div class="widget-title">Who to Follow</div>
+        <div id="suggestions"></div>
+      </div>
+
+      <div style="font-size:0.65rem;color:var(--muted);text-align:center;">
+        SocialSphere Demo — <span style="color:var(--accent)">@sarweshwor</span><br/>
+        Data stored locally in browser
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const USERS={
+  demo:{pass:'demo123',name:'Dev Demo',handle:'@demo',avatar:'D'},
+};
+const SAMPLE_POSTS=[
+  {id:1,user:'Alex Chen',handle:'@alexc',avatar:'A',text:'Just shipped v2.0 of my open source toolkit 🚀 Six months of work, hundreds of commits. Check it out on GitHub! #OpenSource #WebDev',time:'2m',likes:142,comments:18,liked:false},
+  {id:2,user:'Sarah Kim',handle:'@sarahk',avatar:'S',text:'Hot take: TypeScript is non-negotiable for any serious project. The DX improvement is just too good to ignore. Who agrees? 👀',time:'8m',likes:89,comments:34,liked:false},
+  {id:3,user:'Marcus Dev',handle:'@marcusdev',avatar:'M',text:'MongoDB vs PostgreSQL in 2025 — the debate rages on. For most startups, just pick one and ship it. Premature optimization is the root of all evil.',time:'22m',likes:201,comments:67,liked:false},
+  {id:4,user:'Priya S.',handle:'@priyaS',avatar:'P',text:'Been learning Next.js 14 all week. Server Components feel weird at first but once it clicks... 🤯 Total game changer for perf.',time:'1h',likes:76,comments:12,liked:false},
+  {id:5,user:'Jordan Blake',handle:'@jblake',avatar:'J',text:'Your portfolio is not just a showcase — it\'s your first impression. Spend time on it. Make it memorable. #WebDev #Portfolio',time:'2h',likes:315,comments:28,liked:false},
+  {id:6,user:'Neon Coder',handle:'@neoncoder',avatar:'N',text:'CSS Grid and Flexbox walk into a bar... Flex says "I handle one direction." Grid says "Hold my beer." 😂 #CSS #WebDev',time:'3h',likes:523,comments:89,liked:false},
+];
+const SUGGESTED=[
+  {name:'Priya Singh',handle:'@priyaS',avatar:'P'},
+  {name:'Jordan Blake',handle:'@jblake',avatar:'J'},
+  {name:'Neon Coder',handle:'@neoncoder',avatar:'N'},
+];
+const NOTIFICATIONS=[
+  {icon:'❤️',text:'<b>Alex Chen</b> liked your post',time:'2m ago'},
+  {icon:'💬',text:'<b>Sarah Kim</b> commented: "Great point!"',time:'5m ago'},
+  {icon:'🔁',text:'<b>Marcus Dev</b> shared your post',time:'18m ago'},
+  {icon:'👤',text:'<b>Priya S.</b> started following you',time:'1h ago'},
+  {icon:'❤️',text:'<b>Jordan Blake</b> liked your post',time:'2h ago'},
+];
+const MESSAGES=[
+  {user:'Alex Chen',avatar:'A',preview:'Did you see the latest Next.js release?',time:'3m',unread:true},
+  {user:'Sarah Kim',avatar:'S',preview:'Thanks for the feedback on my PR!',time:'1h',unread:false},
+  {user:'Marcus Dev',avatar:'M',preview:'Let\'s collaborate on that open-source project',time:'2h',unread:true},
+  {user:'Priya S.',avatar:'P',preview:'Server Components are wild 🤯',time:'1d',unread:false},
+];
+
+let currentUser=null;
+let posts=[];
+let postNextId=100;
+let currentView='home';
+let activeNavEl=null;
+let openConvo=null;
+let convoMessages={};
+
+function showTab(tab,el){
+  document.querySelectorAll('.auth-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('login-form').style.display=tab==='login'?'block':'none';
+  document.getElementById('register-form').style.display=tab==='register'?'block':'none';
+  document.getElementById('auth-error').style.display='none';
+}
+
+function login(){
+  const u=document.getElementById('l-user').value.trim();
+  const p=document.getElementById('l-pass').value;
+  if(USERS[u]&&USERS[u].pass===p){
+    currentUser={...USERS[u],username:u};
+    enterApp();
+  } else {
+    document.getElementById('auth-error').style.display='block';
+  }
+}
+
+function register(){
+  const name=document.getElementById('r-name').value.trim();
+  const user=document.getElementById('r-user').value.trim().replace('@','');
+  const pass=document.getElementById('r-pass').value;
+  if(!name||!user||!pass){alert('Fill all fields');return;}
+  const letter=name.charAt(0).toUpperCase();
+  USERS[user]={pass,name,handle:'@'+user,avatar:letter};
+  currentUser={name,handle:'@'+user,avatar:letter,username:user};
+  enterApp();
+}
+
+function enterApp(){
+  document.getElementById('auth-screen').style.display='none';
+  document.getElementById('app').style.display='block';
+  document.getElementById('nav-name').textContent=currentUser.name;
+  document.getElementById('nav-handle').textContent=currentUser.handle;
+  document.getElementById('nav-avatar').textContent=currentUser.avatar;
+  posts=[...SAMPLE_POSTS];
+  renderSuggestions();
+  navigate('home', document.querySelector('.nav-item'));
+}
+
+function logout(){
+  currentUser=null;
+  document.getElementById('app').style.display='none';
+  document.getElementById('auth-screen').style.display='flex';
+}
+
+/* ── NAVIGATION ── */
+function navigate(view, el){
+  currentView=view;
+  if(activeNavEl) activeNavEl.classList.remove('active');
+  if(el){ el.classList.add('active'); activeNavEl=el; }
+  const rp=document.getElementById('right-panel');
+  rp.style.display=(view==='messages'||view==='settings')?'none':'';
+  const v=document.getElementById('main-view');
+  v.style.opacity=0;
+  setTimeout(()=>{ renderView(view); v.style.opacity=1; },120);
+  v.style.transition='opacity 0.12s';
+  // clear notif badge when visiting notifications
+  if(view==='notifications') document.getElementById('notif-badge').style.display='none';
+}
+
+function renderView(view){
+  const v=document.getElementById('main-view');
+  if(view==='home') v.innerHTML=homeHTML();
+  else if(view==='explore') v.innerHTML=exploreHTML();
+  else if(view==='notifications') v.innerHTML=notificationsHTML();
+  else if(view==='messages') v.innerHTML=messagesHTML();
+  else if(view==='profile') v.innerHTML=profileHTML();
+  else if(view==='settings') v.innerHTML=settingsHTML();
+}
+
+/* ── HOME ── */
+function homeHTML(){
+  return `
+    <div class="feed-header"><span class="online-dot"></span><span class="feed-title">Home Feed</span></div>
+    <div class="compose-box">
+      <div class="avatar" style="background:var(--accent);color:#08080f">${currentUser.avatar}</div>
+      <div style="flex:1">
+        <textarea class="compose-input" id="compose-input" placeholder="What's on your mind?" maxlength="280" oninput="updateCharCount()"></textarea>
+        <div class="compose-footer">
+          <button class="compose-emoji" onclick="insertEmoji('🚀')">🚀</button>
+          <button class="compose-emoji" onclick="insertEmoji('💡')">💡</button>
+          <button class="compose-emoji" onclick="insertEmoji('🔥')">🔥</button>
+          <button class="compose-emoji" onclick="insertEmoji('✨')">✨</button>
+          <span class="char-count" id="char-count">280</span>
+          <button class="post-btn" onclick="createPost()">Post</button>
+        </div>
+      </div>
+    </div>
+    <div id="post-feed">${postsHTML(posts)}</div>`;
+}
+
+function postsHTML(list){
+  return list.map(p=>`
+    <div class="post" id="post-${p.id}">
+      <div class="post-header">
+        <div class="avatar" style="background:${avatarColor(p.avatar)}">${p.avatar}</div>
+        <div class="post-meta">
+          <div class="post-name">${p.user}</div>
+          <div class="post-handle">${p.handle} · <span class="post-time">${p.time} ago</span></div>
+        </div>
+      </div>
+      <div class="post-body">${linkify(escHtml(p.text))}</div>
+      <div class="post-actions">
+        <button class="action-btn${p.liked?' liked':''}" onclick="toggleLike(${p.id})">
+          <span class="action-icon">${p.liked?'❤️':'🤍'}</span> <span id="likes-${p.id}">${p.likes}</span>
+        </button>
+        <button class="action-btn">💬 ${p.comments}</button>
+        <button class="action-btn">🔁 Share</button>
+        ${p.isOwn?`<button class="action-btn" onclick="deletePost(${p.id})" style="margin-left:auto;color:var(--red)">🗑️</button>`:''}
+      </div>
+    </div>`).join('');
+}
+
+function toggleLike(id){
+  const p=posts.find(x=>x.id===id);
+  if(!p) return;
+  p.liked=!p.liked; p.likes+=p.liked?1:-1;
+  const feed=document.getElementById('post-feed');
+  if(feed) feed.innerHTML=postsHTML(posts);
+}
+
+function deletePost(id){
+  posts=posts.filter(p=>p.id!==id);
+  const feed=document.getElementById('post-feed');
+  if(feed) feed.innerHTML=postsHTML(posts);
+}
+
+function createPost(){
+  const text=document.getElementById('compose-input').value.trim();
+  if(!text) return;
+  posts.unshift({id:postNextId++,user:currentUser.name,handle:currentUser.handle,avatar:currentUser.avatar,text,time:'just now',likes:0,comments:0,liked:false,isOwn:true});
+  document.getElementById('compose-input').value='';
+  updateCharCount();
+  document.getElementById('post-feed').innerHTML=postsHTML(posts);
+}
+
+function updateCharCount(){
+  const el=document.getElementById('char-count'); if(!el) return;
+  const len=document.getElementById('compose-input').value.length;
+  el.textContent=280-len; el.style.color=len>250?'var(--red)':'var(--muted)';
+}
+
+function insertEmoji(e){
+  const input=document.getElementById('compose-input'); if(!input) return;
+  input.value+=e; updateCharCount(); input.focus();
+}
+
+/* ── EXPLORE ── */
+let searchTimeout;
+function exploreHTML(){
+  const tags=['#WebDev','#JavaScript','#React','#OpenSource','#MongoDB','#TypeScript','#CSS','#NextJS','#NodeJS','#PHP'];
+  return `
+    <div class="feed-header"><span class="feed-title">🔍 Explore</span></div>
+    <div style="padding:1.2rem 1.5rem;border-bottom:1px solid var(--border)">
+      <input id="search-input" placeholder="Search posts, people, tags..." oninput="doSearch(this.value)"
+        style="width:100%;background:var(--panel);border:1px solid var(--border);color:var(--text);font-family:var(--font);font-size:0.85rem;padding:0.75rem 1rem;outline:none;transition:border-color 0.15s"
+        onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"/>
+    </div>
+    <div style="padding:1rem 1.5rem;border-bottom:1px solid var(--border)">
+      <div style="font-size:0.68rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--muted);margin-bottom:0.75rem">Trending Tags</div>
+      <div style="display:flex;flex-wrap:wrap;gap:0.5rem">
+        ${tags.map(t=>`<span onclick="doSearch('${t}')" style="cursor:pointer;padding:0.3rem 0.8rem;border:1px solid var(--border);font-size:0.75rem;color:var(--accent);transition:all 0.15s" onmouseover="this.style.background='rgba(0,229,160,0.1)'" onmouseout="this.style.background=''">${t}</span>`).join('')}
+      </div>
+    </div>
+    <div id="explore-results">${postsHTML(posts)}</div>`;
+}
+
+function doSearch(q){
+  const el=document.getElementById('explore-results'); if(!el) return;
+  clearTimeout(searchTimeout);
+  if(!q.trim()){ el.innerHTML=postsHTML(posts); return; }
+  searchTimeout=setTimeout(()=>{
+    const filtered=posts.filter(p=>p.text.toLowerCase().includes(q.toLowerCase())||p.user.toLowerCase().includes(q.toLowerCase())||p.handle.toLowerCase().includes(q.toLowerCase()));
+    el.innerHTML=filtered.length?postsHTML(filtered):`<div style="padding:2rem 1.5rem;color:var(--muted);font-size:0.85rem">No results for "${escHtml(q)}"</div>`;
+  },200);
+}
+
+/* ── NOTIFICATIONS ── */
+function notificationsHTML(){
+  return `
+    <div class="feed-header"><span class="feed-title">🔔 Notifications</span></div>
+    ${NOTIFICATIONS.map(n=>`
+      <div class="post" style="display:flex;align-items:flex-start;gap:1rem;cursor:pointer" onmouseover="this.style.background='rgba(0,229,160,0.03)'" onmouseout="this.style.background=''">
+        <span style="font-size:1.4rem;margin-top:2px">${n.icon}</span>
+        <div style="flex:1">
+          <div style="font-size:0.88rem;color:var(--text)">${n.text}</div>
+          <div style="font-size:0.7rem;color:var(--muted);margin-top:0.3rem">${n.time}</div>
+        </div>
+      </div>`).join('')}`;
+}
+
+/* ── MESSAGES ── */
+function messagesHTML(){
+  if(openConvo!==null) return convoHTML(openConvo);
+  return `
+    <div class="feed-header" style="grid-column:1/-1"><span class="feed-title">✉️ Messages</span></div>
+    <div style="display:grid;grid-template-columns:260px 1fr;flex:1;height:calc(100% - 55px)">
+      <div style="border-right:1px solid var(--border);overflow-y:auto">
+        ${MESSAGES.map((m,i)=>`
+          <div onclick="openMessage(${i})" style="padding:1rem;border-bottom:1px solid var(--border);cursor:pointer;display:flex;gap:0.75rem;align-items:center;transition:background 0.15s;background:${m.unread?'rgba(0,229,160,0.03)':''}" onmouseover="this.style.background='rgba(255,255,255,0.02)'" onmouseout="this.style.background='${m.unread?'rgba(0,229,160,0.03)':''}'">
+            <div class="avatar" style="background:${avatarColor(m.avatar)};width:38px;height:38px">${m.avatar}</div>
+            <div style="flex:1;min-width:0">
+              <div style="display:flex;justify-content:space-between"><span style="font-size:0.85rem;font-weight:600">${m.user}</span><span style="font-size:0.65rem;color:var(--muted)">${m.time}</span></div>
+              <div style="font-size:0.75rem;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${m.preview}</div>
+            </div>
+            ${m.unread?`<span style="width:8px;height:8px;border-radius:50%;background:var(--accent);flex-shrink:0"></span>`:''}
+          </div>`).join('')}
+      </div>
+      <div style="display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:0.85rem;flex-direction:column;gap:0.5rem">
+        <span style="font-size:2rem">✉️</span>
+        Select a conversation
+      </div>
+    </div>`;
+}
+
+function openMessage(i){
+  openConvo=i;
+  MESSAGES[i].unread=false;
+  if(!convoMessages[i]) convoMessages[i]=[{from:'them',text:MESSAGES[i].preview}];
+  renderView('messages');
+}
+
+function convoHTML(i){
+  const m=MESSAGES[i];
+  const msgs=convoMessages[i]||[];
+  return `
+    <div class="feed-header" style="justify-content:flex-start;gap:0.8rem">
+      <button onclick="openConvo=null;renderView('messages')" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:1rem">←</button>
+      <div class="avatar" style="background:${avatarColor(m.avatar)};width:30px;height:30px;font-size:0.75rem">${m.avatar}</div>
+      <span class="feed-title" style="font-size:0.9rem">${m.user}</span>
+      <span style="font-size:0.65rem;color:var(--accent);margin-left:0.3rem">● online</span>
+    </div>
+    <div id="convo-msgs" style="flex:1;overflow-y:auto;padding:1rem 1.5rem;display:flex;flex-direction:column;gap:0.75rem;min-height:300px;max-height:calc(100vh - 180px)">
+      ${msgs.map(msg=>`
+        <div style="display:flex;${msg.from==='me'?'justify-content:flex-end':''};gap:0.5rem;align-items:flex-end">
+          ${msg.from!=='me'?`<div class="avatar" style="background:${avatarColor(m.avatar)};width:26px;height:26px;font-size:0.65rem;flex-shrink:0">${m.avatar}</div>`:''}
+          <div style="max-width:70%;padding:0.6rem 0.9rem;font-size:0.82rem;line-height:1.5;${msg.from==='me'?'background:var(--accent);color:#08080f':'background:var(--panel);border:1px solid var(--border);color:var(--text)'}">${escHtml(msg.text)}</div>
+        </div>`).join('')}
+    </div>
+    <div style="padding:0.75rem 1.5rem;border-top:1px solid var(--border);display:flex;gap:0.75rem">
+      <input id="msg-input" placeholder="Type a message..." onkeydown="if(event.key==='Enter')sendMessage(${i})"
+        style="flex:1;background:var(--panel);border:1px solid var(--border);color:var(--text);font-family:var(--font);font-size:0.82rem;padding:0.6rem 0.9rem;outline:none"
+        onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"/>
+      <button onclick="sendMessage(${i})" style="background:var(--accent);color:#08080f;border:none;font-family:var(--font);font-size:0.78rem;padding:0.6rem 1rem;cursor:pointer">Send →</button>
+    </div>`;
+}
+
+function sendMessage(i){
+  const input=document.getElementById('msg-input'); if(!input||!input.value.trim()) return;
+  if(!convoMessages[i]) convoMessages[i]=[];
+  convoMessages[i].push({from:'me',text:input.value.trim()});
+  const replies=['Got it! 👍','Sounds good!','Totally agree 🙌','Interesting point...','Let me check and get back to you'];
+  const reply=replies[Math.floor(Math.random()*replies.length)];
+  setTimeout(()=>{ convoMessages[i].push({from:'them',text:reply}); renderView('messages'); },800);
+  input.value='';
+  renderView('messages');
+}
+
+/* ── PROFILE ── */
+function profileHTML(){
+  const myPosts=posts.filter(p=>p.isOwn||p.user===currentUser.name);
+  return `
+    <div class="feed-header"><span class="feed-title">👤 Profile</span></div>
+    <div style="padding:1.5rem;border-bottom:1px solid var(--border)">
+      <div style="display:flex;align-items:center;gap:1.2rem;margin-bottom:1rem">
+        <div class="avatar" style="width:60px;height:60px;font-size:1.4rem;background:linear-gradient(135deg,var(--accent),var(--accent2))">${currentUser.avatar}</div>
+        <div>
+          <div style="font-size:1.1rem;font-weight:700;font-family:var(--head)">${currentUser.name}</div>
+          <div style="font-size:0.8rem;color:var(--muted)">${currentUser.handle}</div>
+        </div>
+        <button onclick="alert('Edit profile — connect to backend to save!')" style="margin-left:auto;background:transparent;border:1px solid var(--border);color:var(--muted);font-family:var(--font);font-size:0.75rem;padding:0.4rem 1rem;cursor:pointer;transition:all 0.15s" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">Edit Profile</button>
+      </div>
+      <div style="display:flex;gap:2rem;font-size:0.82rem">
+        <span><b style="color:var(--text)">${myPosts.length}</b> <span style="color:var(--muted)">Posts</span></span>
+        <span><b style="color:var(--text)">142</b> <span style="color:var(--muted)">Followers</span></span>
+        <span><b style="color:var(--text)">89</b> <span style="color:var(--muted)">Following</span></span>
+      </div>
+    </div>
+    <div style="padding:0.8rem 1.5rem;border-bottom:1px solid var(--border);font-size:0.7rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted)">Posts</div>
+    <div>${myPosts.length?postsHTML(myPosts):`<div style="padding:2rem 1.5rem;color:var(--muted);font-size:0.85rem">No posts yet. Share something from Home!</div>`}</div>`;
+}
+
+/* ── SETTINGS ── */
+let settingTheme='dark', settingNotifs=true, settingPrivate=false;
+function settingsHTML(){
+  return `
+    <div class="feed-header"><span class="feed-title">⚙️ Settings</span></div>
+    <div style="padding:1.5rem;max-width:520px">
+
+      <div style="font-size:0.7rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--muted);margin-bottom:1rem">Account</div>
+      <div style="border:1px solid var(--border);padding:1.2rem;margin-bottom:1.5rem">
+        <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1rem">
+          <div class="avatar" style="background:linear-gradient(135deg,var(--accent),var(--accent2))">${currentUser.avatar}</div>
+          <div>
+            <div style="font-size:0.9rem;font-weight:600">${currentUser.name}</div>
+            <div style="font-size:0.75rem;color:var(--muted)">${currentUser.handle}</div>
+          </div>
+        </div>
+        <div style="display:grid;gap:0.75rem">
+          <div><label style="font-size:0.65rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:0.3rem">Display Name</label>
+            <input value="${currentUser.name}" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font);font-size:0.85rem;padding:0.6rem;outline:none"/></div>
+          <div><label style="font-size:0.65rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:0.3rem">Bio</label>
+            <textarea rows="2" placeholder="Tell the world about yourself..." style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font);font-size:0.85rem;padding:0.6rem;outline:none;resize:none"></textarea></div>
+        </div>
+        <button onclick="alert('Saved! (demo only)')" style="margin-top:1rem;background:var(--accent);color:#08080f;border:none;font-family:var(--font);font-size:0.78rem;padding:0.5rem 1.2rem;cursor:pointer">Save Changes</button>
+      </div>
+
+      <div style="font-size:0.7rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--muted);margin-bottom:1rem">Preferences</div>
+      <div style="border:1px solid var(--border);padding:1.2rem;margin-bottom:1.5rem;display:flex;flex-direction:column;gap:1rem">
+        ${toggleRow('Push Notifications','Get notified of likes, comments, follows','notif-toggle',settingNotifs,'settingNotifs=!settingNotifs')}
+        ${toggleRow('Private Account','Only approved followers see your posts','priv-toggle',settingPrivate,'settingPrivate=!settingPrivate')}
+      </div>
+
+      <div style="font-size:0.7rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--muted);margin-bottom:1rem">Danger Zone</div>
+      <div style="border:1px solid rgba(255,77,109,0.3);padding:1.2rem">
+        <div style="font-size:0.85rem;margin-bottom:0.5rem">Delete Account</div>
+        <div style="font-size:0.75rem;color:var(--muted);margin-bottom:1rem">This action cannot be undone. All your data will be permanently removed.</div>
+        <button onclick="alert('Account deletion disabled in demo')" style="background:transparent;border:1px solid var(--red);color:var(--red);font-family:var(--font);font-size:0.75rem;padding:0.4rem 1rem;cursor:pointer">Delete Account</button>
+      </div>
+    </div>`;
+}
+
+function toggleRow(title,desc,id,state,onChange){
+  return `<div style="display:flex;align-items:center;gap:1rem">
+    <div style="flex:1"><div style="font-size:0.85rem">${title}</div><div style="font-size:0.72rem;color:var(--muted)">${desc}</div></div>
+    <div onclick="${onChange};renderView('settings')" id="${id}" style="width:40px;height:22px;border-radius:11px;background:${state?'var(--accent)':'var(--border)'};cursor:pointer;position:relative;transition:background 0.2s;flex-shrink:0">
+      <div style="position:absolute;top:3px;${state?'right:3px':'left:3px'};width:16px;height:16px;border-radius:50%;background:${state?'#08080f':'var(--muted)'};transition:all 0.2s"></div>
+    </div>
+  </div>`;
+}
+
+/* ── SUGGESTIONS ── */
+function renderSuggestions(){
+  const el=document.getElementById('suggestions'); if(!el) return;
+  el.innerHTML=SUGGESTED.map((u,i)=>`
+    <div class="suggested-user">
+      <div class="avatar" style="background:${avatarColor(u.avatar)};width:32px;height:32px;font-size:0.8rem">${u.avatar}</div>
+      <div><div style="font-size:0.82rem;font-weight:600">${u.name}</div><div style="font-size:0.68rem;color:var(--muted)">${u.handle}</div></div>
+      <button class="follow-btn" id="follow-${i}" onclick="toggleFollow(${i},this)">Follow</button>
+    </div>`).join('');
+}
+
+function toggleFollow(i,btn){
+  const following=btn.textContent==='Following';
+  btn.textContent=following?'Follow':'Following';
+  btn.classList.toggle('following',!following);
+}
+
+/* ── UTILS ── */
+const AVATAR_COLORS={'A':'#ff4d6d','S':'#4d96ff','M':'#ffd60a','P':'#c77dff','J':'#00e5a0','N':'#ff9f1c','D':'#00e5a0'};
+function avatarColor(l){return AVATAR_COLORS[l]||'#888';}
+function escHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function linkify(s){return s.replace(/#(\w+)/g,'<span style="color:var(--accent)">#$1</span>').replace(/@(\w+)/g,'<span style="color:var(--accent2)">@$1</span>');}
+</script>
+</body>
+</html>

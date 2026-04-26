@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>PixelForge — Pixel Art Editor</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Syne:wght@700;800&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0d0d12;--surface:#131319;--panel:#1a1a24;--border:#252535;
+  --accent:#00e5a0;--accent2:#7b5ea7;--text:#e8e8f0;--muted:#5a5a70;
+  --font:'DM Mono',monospace;--head:'Syne',sans-serif;
+}
+body{background:var(--bg);color:var(--text);font-family:var(--font);height:100vh;overflow:hidden;display:flex;flex-direction:column;}
+
+/* Header */
+header{
+  background:var(--surface);border-bottom:1px solid var(--border);
+  padding:0.6rem 1.5rem;display:flex;align-items:center;gap:2rem;
+  flex-shrink:0;
+}
+.logo{font-family:var(--head);font-size:1.1rem;font-weight:800;color:var(--accent);letter-spacing:0.05em;}
+.logo span{color:var(--muted);}
+.header-actions{display:flex;gap:0.6rem;margin-left:auto;}
+.btn{
+  background:transparent;border:1px solid var(--border);color:var(--muted);
+  font-family:var(--font);font-size:0.7rem;letter-spacing:0.08em;
+  padding:0.4rem 1rem;cursor:pointer;transition:all 0.15s;
+}
+.btn:hover{border-color:var(--accent);color:var(--accent);}
+.btn-primary{background:var(--accent);color:#0d0d12;border-color:var(--accent);font-weight:500;}
+.btn-primary:hover{opacity:0.85;color:#0d0d12;}
+
+/* Layout */
+.workspace{display:flex;flex:1;overflow:hidden;}
+
+/* Left toolbar */
+.toolbar{
+  width:52px;background:var(--panel);border-right:1px solid var(--border);
+  display:flex;flex-direction:column;align-items:center;padding:0.8rem 0;gap:0.4rem;
+  flex-shrink:0;
+}
+.tool-btn{
+  width:36px;height:36px;background:transparent;border:1px solid transparent;
+  border-radius:4px;cursor:pointer;font-size:1.1rem;display:flex;
+  align-items:center;justify-content:center;transition:all 0.15s;
+  color:var(--muted);position:relative;
+}
+.tool-btn:hover{background:var(--border);border-color:var(--border);color:var(--text);}
+.tool-btn.active{background:rgba(0,229,160,0.12);border-color:var(--accent);color:var(--accent);}
+.tool-sep{width:28px;height:1px;background:var(--border);margin:0.3rem 0;}
+
+/* Canvas area */
+.canvas-area{
+  flex:1;display:flex;align-items:center;justify-content:center;
+  background:var(--bg);
+  background-image:radial-gradient(var(--border) 1px,transparent 1px);
+  background-size:20px 20px;
+  overflow:auto;
+  position:relative;
+}
+#pixel-canvas{
+  cursor:crosshair;
+  image-rendering:pixelated;
+  border:1px solid var(--border);
+  box-shadow:0 0 60px rgba(0,229,160,0.06);
+}
+
+/* Right panel */
+.right-panel{
+  width:200px;background:var(--panel);border-left:1px solid var(--border);
+  display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto;
+}
+.panel-section{padding:1rem;border-bottom:1px solid var(--border);}
+.panel-label{font-size:0.65rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--muted);margin-bottom:0.7rem;}
+
+/* Color picker */
+.color-preview{
+  width:100%;height:40px;border:1px solid var(--border);margin-bottom:0.7rem;
+  cursor:pointer;transition:border-color 0.15s;
+}
+.color-preview:hover{border-color:var(--accent);}
+input[type=color]{position:absolute;opacity:0;pointer-events:none;}
+
+.palette-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;}
+.swatch{
+  aspect-ratio:1;border:1px solid transparent;cursor:pointer;
+  border-radius:2px;transition:transform 0.1s,border-color 0.1s;
+}
+.swatch:hover{transform:scale(1.15);border-color:rgba(255,255,255,0.3);}
+.swatch.active{border-color:white;transform:scale(1.1);}
+
+/* Size control */
+.size-row{display:flex;align-items:center;gap:0.5rem;}
+.size-display{
+  background:var(--bg);border:1px solid var(--border);
+  padding:0.3rem 0.6rem;font-size:0.8rem;color:var(--accent);
+  text-align:center;flex:1;
+}
+.size-btn{
+  width:26px;height:26px;background:transparent;border:1px solid var(--border);
+  color:var(--text);cursor:pointer;font-size:0.9rem;transition:all 0.15s;
+}
+.size-btn:hover{border-color:var(--accent);color:var(--accent);}
+
+/* Grid size */
+.grid-btns{display:flex;gap:0.4rem;flex-wrap:wrap;}
+.grid-btn{
+  flex:1;min-width:calc(50% - 0.2rem);background:var(--bg);border:1px solid var(--border);
+  color:var(--muted);font-family:var(--font);font-size:0.65rem;
+  padding:0.3rem;cursor:pointer;transition:all 0.15s;text-align:center;
+}
+.grid-btn:hover,.grid-btn.active{border-color:var(--accent);color:var(--accent);}
+
+/* Zoom */
+.zoom-row{display:flex;align-items:center;gap:0.4rem;}
+.zoom-val{flex:1;text-align:center;font-size:0.8rem;color:var(--accent);}
+
+/* History row */
+.history-row{display:flex;gap:0.4rem;}
+.history-btn{
+  flex:1;padding:0.4rem;background:var(--bg);border:1px solid var(--border);
+  color:var(--muted);font-family:var(--font);font-size:0.7rem;cursor:pointer;
+  transition:all 0.15s;text-align:center;
+}
+.history-btn:hover:not(:disabled){border-color:var(--accent);color:var(--accent);}
+.history-btn:disabled{opacity:0.3;cursor:not-allowed;}
+
+/* Status bar */
+.statusbar{
+  background:var(--surface);border-top:1px solid var(--border);
+  padding:0.3rem 1.5rem;display:flex;gap:2rem;align-items:center;
+  flex-shrink:0;font-size:0.7rem;color:var(--muted);
+}
+.status-item span{color:var(--accent);}
+
+/* Tooltip */
+.tool-btn[data-tip]:hover::after{
+  content:attr(data-tip);position:absolute;left:44px;top:50%;transform:translateY(-50%);
+  background:#252535;border:1px solid var(--border);color:var(--text);
+  font-size:0.65rem;padding:0.25rem 0.5rem;white-space:nowrap;z-index:99;pointer-events:none;
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Pixel<span>Forge</span></div>
+  <div style="font-size:0.7rem;color:var(--muted)">pixel art editor</div>
+  <div class="header-actions">
+    <button class="btn" onclick="clearCanvas()">Clear</button>
+    <button class="btn" onclick="exportPNG()" class="btn">Export PNG</button>
+    <button class="btn btn-primary" onclick="exportPNG()">⬇ Save</button>
+  </div>
+</header>
+
+<div class="workspace">
+
+  <!-- Left toolbar -->
+  <div class="toolbar">
+    <button class="tool-btn active" data-tool="draw" data-tip="Draw (D)" onclick="setTool('draw')" title="Draw">✏️</button>
+    <button class="tool-btn" data-tool="erase" data-tip="Erase (E)" onclick="setTool('erase')" title="Erase">🧹</button>
+    <button class="tool-btn" data-tool="fill" data-tip="Fill (F)" onclick="setTool('fill')" title="Fill">🪣</button>
+    <button class="tool-btn" data-tool="eyedrop" data-tip="Eyedropper (I)" onclick="setTool('eyedrop')" title="Eyedrop">💉</button>
+    <div class="tool-sep"></div>
+    <button class="tool-btn" data-tool="line" data-tip="Line (L)" onclick="setTool('line')" title="Line">📏</button>
+    <button class="tool-btn" data-tool="rect" data-tip="Rectangle (R)" onclick="setTool('rect')" title="Rectangle">⬜</button>
+    <div class="tool-sep"></div>
+    <button class="tool-btn" data-tip="Undo (Ctrl+Z)" onclick="undo()" title="Undo">↩️</button>
+    <button class="tool-btn" data-tip="Redo (Ctrl+Y)" onclick="redo()" title="Redo">↪️</button>
+  </div>
+
+  <!-- Canvas -->
+  <div class="canvas-area" id="canvas-area">
+    <canvas id="pixel-canvas"></canvas>
+  </div>
+
+  <!-- Right panel -->
+  <div class="right-panel">
+
+    <div class="panel-section">
+      <div class="panel-label">Color</div>
+      <div class="color-preview" id="color-preview" onclick="document.getElementById('colorInput').click()"></div>
+      <input type="color" id="colorInput" value="#00e5a0" oninput="setColor(this.value)"/>
+      <div class="palette-grid" id="palette"></div>
+    </div>
+
+    <div class="panel-section">
+      <div class="panel-label">Brush Size</div>
+      <div class="size-row">
+        <button class="size-btn" onclick="changeBrush(-1)">−</button>
+        <div class="size-display" id="brush-display">1</div>
+        <button class="size-btn" onclick="changeBrush(1)">+</button>
+      </div>
+    </div>
+
+    <div class="panel-section">
+      <div class="panel-label">Canvas Size</div>
+      <div class="grid-btns">
+        <button class="grid-btn active" onclick="resizeGrid(16,16,this)">16×16</button>
+        <button class="grid-btn" onclick="resizeGrid(32,32,this)">32×32</button>
+        <button class="grid-btn" onclick="resizeGrid(48,48,this)">48×48</button>
+        <button class="grid-btn" onclick="resizeGrid(64,64,this)">64×64</button>
+      </div>
+    </div>
+
+    <div class="panel-section">
+      <div class="panel-label">Zoom</div>
+      <div class="zoom-row">
+        <button class="size-btn" onclick="changeZoom(-2)">−</button>
+        <div class="zoom-val" id="zoom-display">24px</div>
+        <button class="size-btn" onclick="changeZoom(2)">+</button>
+      </div>
+    </div>
+
+    <div class="panel-section">
+      <div class="panel-label">History</div>
+      <div class="history-row">
+        <button class="history-btn" id="undo-btn" onclick="undo()">↩ Undo</button>
+        <button class="history-btn" id="redo-btn" onclick="redo()">Redo ↪</button>
+      </div>
+    </div>
+
+    <div class="panel-section">
+      <div class="panel-label">Quick Colors</div>
+      <div style="display:flex;flex-direction:column;gap:0.4rem;">
+        <button class="btn" onclick="setColor('#000000')">■ Black</button>
+        <button class="btn" onclick="setColor('#ffffff')">□ White</button>
+        <button class="btn" onclick="setColor('transparent');setTool('erase')">⊘ Transparent</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="statusbar">
+  <div class="status-item">Tool: <span id="status-tool">Draw</span></div>
+  <div class="status-item">Color: <span id="status-color">#00e5a0</span></div>
+  <div class="status-item">Pos: <span id="status-pos">—</span></div>
+  <div class="status-item">Grid: <span id="status-grid">16×16</span></div>
+</div>
+
+<script>
+// State
+let COLS=16,ROWS=16,CELL=24;
+let tool='draw';
+let color='#00e5a0';
+let brushSize=1;
+let drawing=false;
+let startX,startY;
+let history=[],histIdx=-1;
+let grid=[];
+
+const canvas=document.getElementById('pixel-canvas');
+const ctx=canvas.getContext('2d');
+
+const PALETTE=[
+  '#000000','#1a1a2e','#16213e','#0f3460','#533483',
+  '#e94560','#f5a623','#f8e71c','#7ed321','#00e5a0',
+  '#4a90e2','#9013fe','#ffffff','#d0d0d0','#888888',
+  '#ff6b6b','#ffd93d','#6bcb77','#4d96ff','#c77dff',
+];
+
+function initGrid(){
+  grid=Array.from({length:ROWS},()=>Array(COLS).fill(null));
+}
+
+function initCanvas(){
+  canvas.width=COLS*CELL;
+  canvas.height=ROWS*CELL;
+  render();
+}
+
+function render(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  // Checkered background (transparent indicator)
+  for(let r=0;r<ROWS;r++){
+    for(let c=0;c<COLS;c++){
+      const x=c*CELL,y=r*CELL;
+      if(!grid[r][c]){
+        ctx.fillStyle=(r+c)%2===0?'#1a1a24':'#131319';
+        ctx.fillRect(x,y,CELL,CELL);
+      } else {
+        ctx.fillStyle=grid[r][c];
+        ctx.fillRect(x,y,CELL,CELL);
+      }
+    }
+  }
+  // Grid lines
+  ctx.strokeStyle='rgba(255,255,255,0.04)';
+  ctx.lineWidth=0.5;
+  for(let r=0;r<=ROWS;r++){
+    ctx.beginPath();ctx.moveTo(0,r*CELL);ctx.lineTo(COLS*CELL,r*CELL);ctx.stroke();
+  }
+  for(let c=0;c<=COLS;c++){
+    ctx.beginPath();ctx.moveTo(c*CELL,0);ctx.lineTo(c*CELL,ROWS*CELL);ctx.stroke();
+  }
+}
+
+function getCell(e){
+  const rect=canvas.getBoundingClientRect();
+  const x=Math.floor((e.clientX-rect.left)/CELL);
+  const y=Math.floor((e.clientY-rect.top)/CELL);
+  return {x,y};
+}
+
+function inBounds(x,y){return x>=0&&x<COLS&&y>=0&&y<ROWS;}
+
+function paint(x,y,c){
+  for(let dy=0;dy<brushSize;dy++){
+    for(let dx=0;dx<brushSize;dx++){
+      const nx=x+dx,ny=y+dy;
+      if(inBounds(nx,ny)) grid[ny][nx]=c;
+    }
+  }
+}
+
+function floodFill(x,y,newColor){
+  const target=grid[y][x];
+  if(target===newColor) return;
+  const stack=[[x,y]];
+  while(stack.length){
+    const [cx,cy]=stack.pop();
+    if(!inBounds(cx,cy)||grid[cy][cx]!==target) continue;
+    grid[cy][cx]=newColor;
+    stack.push([cx+1,cy],[cx-1,cy],[cx,cy+1],[cx,cy-1]);
+  }
+}
+
+function saveHistory(){
+  history=history.slice(0,histIdx+1);
+  history.push(JSON.parse(JSON.stringify(grid)));
+  histIdx=history.length-1;
+  if(histIdx>60){history.shift();histIdx--;}
+}
+
+function undo(){
+  if(histIdx>0){histIdx--;grid=JSON.parse(JSON.stringify(history[histIdx]));render();}
+}
+
+function redo(){
+  if(histIdx<history.length-1){histIdx++;grid=JSON.parse(JSON.stringify(history[histIdx]));render();}
+}
+
+canvas.addEventListener('mousedown',e=>{
+  drawing=true;
+  const {x,y}=getCell(e);
+  startX=x;startY=y;
+  saveHistory();
+  if(tool==='eyedrop'){
+    const c=grid[y]?.[x]||null;
+    if(c){setColor(c);}
+    return;
+  }
+  if(tool==='fill'){floodFill(x,y,color==='transparent'?null:color);render();return;}
+  if(tool==='draw'||tool==='erase'){
+    paint(x,y,tool==='erase'?null:color);render();
+  }
+});
+
+canvas.addEventListener('mousemove',e=>{
+  const {x,y}=getCell(e);
+  document.getElementById('status-pos').textContent=`${x},${y}`;
+  if(!drawing) return;
+  if(tool==='draw'||tool==='erase'){
+    paint(x,y,tool==='erase'?null:color);render();
+  }
+  if(tool==='line'||tool==='rect'){
+    // Live preview
+    const snap=JSON.parse(JSON.stringify(history[histIdx]||grid));
+    grid=JSON.parse(JSON.stringify(snap));
+    if(tool==='line'){
+      drawLine(startX,startY,x,y,color);
+    } else {
+      drawRect(startX,startY,x,y,color);
+    }
+    render();
+  }
+});
+
+canvas.addEventListener('mouseup',e=>{
+  drawing=false;
+});
+canvas.addEventListener('mouseleave',()=>{drawing=false;document.getElementById('status-pos').textContent='—';});
+
+function drawLine(x0,y0,x1,y1,c){
+  let dx=Math.abs(x1-x0),dy=Math.abs(y1-y0);
+  let sx=x0<x1?1:-1,sy=y0<y1?1:-1,err=dx-dy;
+  while(true){
+    if(inBounds(x0,y0)) grid[y0][x0]=c==='transparent'?null:c;
+    if(x0===x1&&y0===y1) break;
+    let e2=2*err;
+    if(e2>-dy){err-=dy;x0+=sx;}
+    if(e2<dx){err+=dx;y0+=sy;}
+  }
+}
+
+function drawRect(x0,y0,x1,y1,c){
+  const minX=Math.min(x0,x1),maxX=Math.max(x0,x1);
+  const minY=Math.min(y0,y1),maxY=Math.max(y0,y1);
+  for(let x=minX;x<=maxX;x++){
+    for(let y=minY;y<=maxY;y++){
+      if(x===minX||x===maxX||y===minY||y===maxY){
+        if(inBounds(x,y)) grid[y][x]=c==='transparent'?null:c;
+      }
+    }
+  }
+}
+
+function setTool(t){
+  tool=t;
+  document.querySelectorAll('.tool-btn[data-tool]').forEach(b=>b.classList.toggle('active',b.dataset.tool===t));
+  document.getElementById('status-tool').textContent=t.charAt(0).toUpperCase()+t.slice(1);
+  canvas.style.cursor=t==='eyedrop'?'crosshair':t==='fill'?'cell':'crosshair';
+}
+
+function setColor(c){
+  color=c;
+  document.getElementById('color-preview').style.background=c;
+  document.getElementById('colorInput').value=c;
+  document.getElementById('status-color').textContent=c;
+  document.querySelectorAll('.swatch').forEach(s=>s.classList.toggle('active',s.dataset.color===c));
+}
+
+function changeBrush(d){
+  brushSize=Math.max(1,Math.min(8,brushSize+d));
+  document.getElementById('brush-display').textContent=brushSize;
+}
+
+function changeZoom(d){
+  CELL=Math.max(6,Math.min(48,CELL+d));
+  document.getElementById('zoom-display').textContent=CELL+'px';
+  initCanvas();
+}
+
+function resizeGrid(cols,rows,btn){
+  document.querySelectorAll('.grid-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  const oldGrid=grid;
+  COLS=cols;ROWS=rows;
+  initGrid();
+  for(let r=0;r<Math.min(rows,oldGrid.length);r++)
+    for(let c=0;c<Math.min(cols,(oldGrid[r]||[]).length);c++)
+      grid[r][c]=oldGrid[r][c];
+  document.getElementById('status-grid').textContent=`${cols}×${rows}`;
+  saveHistory();
+  initCanvas();
+}
+
+function clearCanvas(){
+  saveHistory();
+  initGrid();
+  render();
+}
+
+function exportPNG(){
+  // Render to a clean canvas (no grid lines)
+  const exp=document.createElement('canvas');
+  exp.width=COLS;exp.height=ROWS;
+  const ec=exp.getContext('2d');
+  for(let r=0;r<ROWS;r++)
+    for(let c=0;c<COLS;c++){
+      if(grid[r][c]){ec.fillStyle=grid[r][c];ec.fillRect(c,r,1,1);}
+    }
+  // Scaled export
+  const out=document.createElement('canvas');
+  out.width=COLS*8;out.height=ROWS*8;
+  const oc=out.getContext('2d');
+  oc.imageSmoothingEnabled=false;
+  oc.drawImage(exp,0,0,out.width,out.height);
+  const a=document.createElement('a');
+  a.download='pixelforge-art.png';
+  a.href=out.toDataURL();
+  a.click();
+}
+
+// Build palette
+const paletteEl=document.getElementById('palette');
+PALETTE.forEach(c=>{
+  const s=document.createElement('div');
+  s.className='swatch';
+  s.style.background=c;
+  s.dataset.color=c;
+  s.title=c;
+  s.onclick=()=>setColor(c);
+  paletteEl.appendChild(s);
+});
+
+// Keyboard shortcuts
+document.addEventListener('keydown',e=>{
+  if(e.ctrlKey&&e.key==='z'){undo();}
+  if(e.ctrlKey&&e.key==='y'){redo();}
+  if(e.key==='d') setTool('draw');
+  if(e.key==='e') setTool('erase');
+  if(e.key==='f') setTool('fill');
+  if(e.key==='i') setTool('eyedrop');
+  if(e.key==='l') setTool('line');
+  if(e.key==='r') setTool('rect');
+});
+
+// Init
+setColor('#00e5a0');
+document.getElementById('color-preview').style.background=color;
+initGrid();
+saveHistory();
+initCanvas();
+</script>
+</body>
+</html>

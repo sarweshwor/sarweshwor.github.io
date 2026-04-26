@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sarweshwor | Full Stack Developer</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0a0a0f;
+      --surface: #111118;
+      --border: #1e1e2e;
+      --accent: #00e5a0;
+      --accent2: #7b5ea7;
+      --text: #e8e8f0;
+      --muted: #6b6b80;
+      --font-head: 'Syne', sans-serif;
+      --font-mono: 'DM Mono', monospace;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-mono);
+      font-size: 15px;
+      line-height: 1.7;
+      overflow-x: hidden;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.2rem 4rem;
+      background: rgba(10,10,15,0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-logo {
+      font-family: var(--font-head);
+      font-weight: 800;
+      font-size: 1.2rem;
+      color: var(--accent);
+      letter-spacing: 0.05em;
+      text-decoration: none;
+    }
+
+    .nav-links { display: flex; gap: 2.5rem; list-style: none; }
+    .nav-links a {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 0.8rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--accent); }
+
+    /* ── HERO ── */
+    #hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 0 4rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-grid {
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(0,229,160,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,229,160,0.04) 1px, transparent 1px);
+      background-size: 60px 60px;
+      pointer-events: none;
+    }
+
+    .hero-glow {
+      position: absolute;
+      width: 600px; height: 600px;
+      background: radial-gradient(circle, rgba(0,229,160,0.08) 0%, transparent 70%);
+      top: 50%; left: 10%;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+    }
+
+    .hero-tag {
+      font-size: 0.75rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 1.2rem;
+      animation: fadeUp 0.6s ease both;
+    }
+
+    .hero-tag::before { content: '// '; color: var(--muted); }
+
+    h1 {
+      font-family: var(--font-head);
+      font-size: clamp(3.5rem, 8vw, 7rem);
+      font-weight: 800;
+      line-height: 1.0;
+      letter-spacing: -0.02em;
+      animation: fadeUp 0.7s 0.1s ease both;
+    }
+
+    h1 .name-line { display: block; }
+    h1 .dim { color: var(--muted); }
+
+    .hero-sub {
+      margin-top: 2rem;
+      font-size: 1rem;
+      color: var(--muted);
+      max-width: 440px;
+      animation: fadeUp 0.7s 0.2s ease both;
+    }
+
+    .hero-cta {
+      margin-top: 3rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      background: var(--accent);
+      color: #0a0a0f;
+      font-family: var(--font-mono);
+      font-weight: 500;
+      font-size: 0.85rem;
+      letter-spacing: 0.05em;
+      padding: 0.85rem 2rem;
+      text-decoration: none;
+      transition: transform 0.2s, box-shadow 0.2s;
+      animation: fadeUp 0.7s 0.3s ease both;
+      clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px));
+    }
+    .hero-cta:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 32px rgba(0,229,160,0.3);
+    }
+
+    /* ── SECTION SHARED ── */
+    section { padding: 6rem 4rem; }
+    .section-label {
+      font-size: 0.7rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 1rem;
+    }
+    .section-label::before { content: '// '; color: var(--muted); }
+
+    h2 {
+      font-family: var(--font-head);
+      font-size: clamp(2rem, 4vw, 3rem);
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin-bottom: 3rem;
+    }
+
+    /* ── ABOUT ── */
+    #about { background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+
+    .about-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4rem;
+      align-items: start;
+    }
+
+    .about-text p {
+      color: var(--muted);
+      margin-bottom: 1rem;
+      font-size: 0.95rem;
+    }
+    .about-text p strong { color: var(--text); }
+
+    /* Skills */
+    .skills-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+      gap: 1rem;
+    }
+
+    .skill-chip {
+      border: 1px solid var(--border);
+      padding: 0.75rem 0.5rem;
+      text-align: center;
+      font-size: 0.7rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      transition: border-color 0.2s, color 0.2s, background 0.2s;
+      position: relative;
+      overflow: hidden;
+    }
+    .skill-chip::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: var(--accent);
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    .skill-chip:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .skill-emoji { display: block; font-size: 1.4rem; margin-bottom: 0.3rem; }
+
+    /* ── PROJECTS ── */
+    #projects { }
+
+    .projects-list { display: flex; flex-direction: column; gap: 1px; border: 1px solid var(--border); }
+
+    .project-item {
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 0;
+      border-bottom: 1px solid var(--border);
+      overflow: hidden;
+      transition: background 0.2s;
+    }
+    .project-item:last-child { border-bottom: none; }
+    .project-item:hover { background: rgba(0,229,160,0.03); }
+
+    .project-info {
+      padding: 2.5rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      border-right: 1px solid var(--border);
+    }
+
+    .project-num {
+      font-size: 0.7rem;
+      color: var(--accent);
+      letter-spacing: 0.15em;
+      margin-bottom: 0.6rem;
+    }
+
+    .project-title {
+      font-family: var(--font-head);
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 0.8rem;
+      color: var(--text);
+    }
+
+    .project-desc {
+      color: var(--muted);
+      font-size: 0.85rem;
+      max-width: 480px;
+      margin-bottom: 1.5rem;
+    }
+
+    .project-tags { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1.5rem; }
+    .tag {
+      font-size: 0.65rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 0.25rem 0.7rem;
+      border: 1px solid var(--border);
+      color: var(--muted);
+    }
+
+    .project-links { display: flex; gap: 1rem; }
+    .btn {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      letter-spacing: 0.08em;
+      padding: 0.5rem 1.2rem;
+      text-decoration: none;
+      transition: all 0.2s;
+      border: 1px solid var(--accent);
+      color: var(--accent);
+    }
+    .btn:hover { background: var(--accent); color: var(--bg); }
+    .btn-ghost { border-color: var(--border); color: var(--muted); }
+    .btn-ghost:hover { border-color: var(--muted); background: transparent; color: var(--text); }
+
+    .project-img {
+      height: 220px;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--border);
+      position: relative;
+    }
+
+    /* Placeholder screenshots with code-style art */
+    .project-img .mock {
+      width: 100%; height: 100%;
+      display: flex;
+      flex-direction: column;
+      padding: 1.2rem;
+      font-size: 0.65rem;
+      line-height: 1.6;
+      overflow: hidden;
+      color: rgba(0,229,160,0.6);
+      font-family: var(--font-mono);
+    }
+    .mock-line { opacity: 0.6; }
+    .mock-line.hi { color: var(--accent); opacity: 1; }
+    .mock-line.dim { color: var(--muted); opacity: 0.4; }
+    .mock-line.purple { color: #c792ea; opacity: 0.8; }
+
+    /* ── CONTACT ── */
+    #contact { background: var(--surface); border-top: 1px solid var(--border); }
+
+    .contact-wrap { max-width: 620px; }
+    .contact-desc { color: var(--muted); margin-bottom: 3rem; font-size: 0.95rem; }
+
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+    .form-field { display: flex; flex-direction: column; gap: 0.4rem; margin-bottom: 1rem; }
+    .form-field label { font-size: 0.7rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+    .form-field input, .form-field textarea {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      padding: 0.85rem 1rem;
+      color: var(--text);
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      outline: none;
+      transition: border-color 0.2s;
+      resize: none;
+    }
+    .form-field input:focus, .form-field textarea:focus { border-color: var(--accent); }
+
+    .form-submit {
+      background: var(--accent);
+      color: var(--bg);
+      border: none;
+      font-family: var(--font-mono);
+      font-weight: 500;
+      font-size: 0.85rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 1rem 2.5rem;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.2s;
+    }
+    .form-submit:hover { opacity: 0.85; transform: translateY(-1px); }
+
+    .social-links { display: flex; gap: 1.5rem; margin-top: 3rem; }
+    .social-links a {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 0.8rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 2px;
+      transition: color 0.2s, border-color 0.2s;
+    }
+    .social-links a:hover { color: var(--accent); border-color: var(--accent); }
+
+    /* ── FOOTER ── */
+    footer {
+      padding: 2rem 4rem;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: var(--muted);
+      font-size: 0.75rem;
+      letter-spacing: 0.08em;
+    }
+
+    /* ── ANIMATIONS ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+
+    /* ── APP MODAL ── */
+    #app-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+    #app-modal.open {
+      opacity: 1;
+      pointer-events: all;
+    }
+    .modal-backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.85);
+      backdrop-filter: blur(8px);
+    }
+    .modal-window {
+      position: relative;
+      z-index: 1;
+      width: min(1100px, 94vw);
+      height: min(700px, 88vh);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      transform: translateY(30px) scale(0.97);
+      transition: transform 0.35s cubic-bezier(0.16,1,0.3,1);
+      box-shadow: 0 40px 120px rgba(0,0,0,0.6), 0 0 0 1px rgba(0,229,160,0.1);
+    }
+    #app-modal.open .modal-window {
+      transform: translateY(0) scale(1);
+    }
+    .modal-bar {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 0.75rem 1.2rem;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg);
+      flex-shrink: 0;
+    }
+    .modal-dots { display: flex; gap: 6px; }
+    .modal-dots span {
+      width: 12px; height: 12px;
+      border-radius: 50%;
+      background: var(--border);
+    }
+    .modal-dots span:nth-child(1) { background: #ff5f57; }
+    .modal-dots span:nth-child(2) { background: #febc2e; }
+    .modal-dots span:nth-child(3) { background: #28c840; }
+    .modal-title {
+      flex: 1;
+      font-size: 0.72rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .modal-close {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      letter-spacing: 0.1em;
+      padding: 0.3rem 0.8rem;
+      cursor: pointer;
+      text-transform: uppercase;
+      transition: all 0.2s;
+    }
+    .modal-close:hover { border-color: var(--accent); color: var(--accent); }
+    .modal-open-tab {
+      background: none;
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      letter-spacing: 0.1em;
+      padding: 0.3rem 0.8rem;
+      cursor: pointer;
+      text-transform: uppercase;
+      text-decoration: none;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .modal-open-tab:hover { background: var(--accent); color: var(--bg); }
+    .modal-iframe {
+      flex: 1;
+      width: 100%;
+      border: none;
+      background: #fff;
+    }
+
+    /* project-img hover → show preview prompt */
+    .project-img {
+      cursor: pointer;
+      position: relative;
+    }
+    .project-img .preview-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(0,229,160,0.06);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.25s;
+      font-size: 0.72rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--accent);
+      border: 1px solid rgba(0,229,160,0.25);
+    }
+    .project-img:hover .preview-overlay { opacity: 1; }
+    .preview-overlay::before { content: '▶ '; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 900px) {
+      nav { padding: 1rem 1.5rem; }
+      .nav-links { gap: 1.5rem; }
+      section { padding: 4rem 1.5rem; }
+      #hero { padding: 0 1.5rem; }
+      .about-grid { grid-template-columns: 1fr; }
+      .project-item { grid-template-columns: 1fr; }
+      .project-img { height: 160px; }
+      .form-row { grid-template-columns: 1fr; }
+      footer { padding: 1.5rem; flex-direction: column; gap: 0.5rem; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="#hero" class="nav-logo">S.DEV</a>
+  <ul class="nav-links">
+    <li><a href="#hero">Home</a></li>
+    <li><a href="#about">About</a></li>
+    <li><a href="#projects">Projects</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-grid"></div>
+  <div class="hero-glow"></div>
+
+  <p class="hero-tag">available for work</p>
+
+  <h1>
+    <span class="name-line">Hello,</span>
+    <span class="name-line">I'm <span style="color:var(--accent)">Sarweshwor.</span></span>
+    <span class="name-line dim">Full Stack Dev.</span>
+  </h1>
+
+  <p class="hero-sub">
+    I build fast, clean, and purposeful web applications — from interactive front-ends to robust back-end systems.
+  </p>
+
+  <a href="#about" class="hero-cta">
+    View my work &nbsp;&#8594;
+  </a>
+</section>
+
+<!-- ABOUT -->
+<section id="about">
+  <p class="section-label">About Me</p>
+  <h2>Who I am.</h2>
+
+  <div class="about-grid">
+    <div class="about-text reveal">
+      <p>
+        I'm a <strong>full stack developer</strong> with a love for building things that live on the internet. I believe the best software is both functional and beautiful — and I chase that combination in every project.
+      </p>
+      <p>
+        My journey in web development is driven by an insatiable curiosity — the web never stops evolving, and neither do I. Whether it's architecting scalable APIs or crafting pixel-perfect UIs, I care deeply about the craft.
+      </p>
+      <p>
+        Outside of code, you'll find me exploring new technologies, contributing to open source, or getting lost in a good book.
+      </p>
+    </div>
+
+    <div class="skills-grid reveal">
+      <div class="skill-chip"><span class="skill-emoji">🌐</span>HTML5</div>
+      <div class="skill-chip"><span class="skill-emoji">⚛️</span>React</div>
+      <div class="skill-chip"><span class="skill-emoji">🟨</span>JavaScript</div>
+      <div class="skill-chip"><span class="skill-emoji">🎨</span>CSS3</div>
+      <div class="skill-chip"><span class="skill-emoji">🟢</span>Node.js</div>
+      <div class="skill-chip"><span class="skill-emoji">🚂</span>Express</div>
+      <div class="skill-chip"><span class="skill-emoji">🍃</span>MongoDB</div>
+      <div class="skill-chip"><span class="skill-emoji">🔷</span>TypeScript</div>
+      <div class="skill-chip"><span class="skill-emoji">▲</span>Next.js</div>
+      <div class="skill-chip"><span class="skill-emoji">🐘</span>PHP</div>
+      <div class="skill-chip"><span class="skill-emoji">🗄️</span>MySQL</div>
+      <div class="skill-chip"><span class="skill-emoji">🔧</span>Git</div>
+    </div>
+  </div>
+</section>
+
+<!-- PROJECTS -->
+<section id="projects">
+  <p class="section-label">Work</p>
+  <h2>Projects.</h2>
+
+  <div class="projects-list reveal">
+
+    <!-- Project 1 -->
+    <div class="project-item">
+      <div class="project-info">
+        <p class="project-num">01 &mdash; Social Media</p>
+        <h3 class="project-title">SocialSphere App</h3>
+        <p class="project-desc">A full-stack social media platform with real-time notifications, user authentication, post feeds, likes, comments, and image uploads via cloud storage.</p>
+        <div class="project-tags">
+          <span class="tag">React</span>
+          <span class="tag">Node.js</span>
+          <span class="tag">Express</span>
+          <span class="tag">MongoDB</span>
+          <span class="tag">Socket.io</span>
+          <span class="tag">AWS S3</span>
+        </div>
+        <div class="project-links">
+          <button class="btn" onclick="openApp('socialsphere.html','SocialSphere App')">Live App ↗</button>
+          <a href="#" class="btn btn-ghost">GitHub</a>
+        </div>
+      </div>
+      <div class="project-img" onclick="openApp('socialsphere.html','SocialSphere App')">
+        <div class="preview-overlay">Preview App</div>
+        <div class="mock">
+          <div class="mock-line hi">// SocialSphere &mdash; Feed</div>
+          <div class="mock-line dim">────────────────────</div>
+          <div class="mock-line">👤 @alex &nbsp;· 2m ago</div>
+          <div class="mock-line dim">  &ldquo;Just shipped v2.0! 🚀&rdquo;</div>
+          <div class="mock-line">  ❤️ 142 &nbsp; 💬 18 &nbsp; 🔁 34</div>
+          <div class="mock-line dim">────────────────────</div>
+          <div class="mock-line">👤 @sara &nbsp;· 8m ago</div>
+          <div class="mock-line dim">  &ldquo;Anyone using Socket.io?&rdquo;</div>
+          <div class="mock-line">  ❤️ 76 &nbsp; 💬 9</div>
+          <div class="mock-line dim">────────────────────</div>
+          <div class="mock-line purple">LIVE &bull; 3 users typing...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Project 2 -->
+    <div class="project-item">
+      <div class="project-info">
+        <p class="project-num">02 &mdash; Messaging</p>
+        <h3 class="project-title">SwiftChat Messenger</h3>
+        <p class="project-desc">Instant messaging application with real-time chat, read receipts, user presence indicators, and group channels built with Next.js and Firebase.</p>
+        <div class="project-tags">
+          <span class="tag">Next.js</span>
+          <span class="tag">Firebase</span>
+          <span class="tag">Firestore</span>
+          <span class="tag">Auth</span>
+        </div>
+        <div class="project-links">
+          <button class="btn" onclick="openApp('swiftchat.html','SwiftChat Messenger')">Live App ↗</button>
+          <a href="#" class="btn btn-ghost">GitHub</a>
+        </div>
+      </div>
+      <div class="project-img" onclick="openApp('swiftchat.html','SwiftChat Messenger')">
+        <div class="preview-overlay">Preview App</div>
+        <div class="mock">
+          <div class="mock-line hi">// SwiftChat &mdash; Messages</div>
+          <div class="mock-line dim">────────────────────</div>
+          <div class="mock-line">🟢 Sarah &nbsp;&nbsp; online</div>
+          <div class="mock-line dim">  hey! did you push the fix?</div>
+          <div class="mock-line">🟡 Mike &nbsp;&nbsp;&nbsp; 1m ago</div>
+          <div class="mock-line dim">  yep, deployed 5 mins ago</div>
+          <div class="mock-line">🟢 You</div>
+          <div class="mock-line dim">  awesome! looks good ✅</div>
+          <div class="mock-line dim">────────────────────</div>
+          <div class="mock-line purple">Sarah is typing...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Project 3 -->
+    <div class="project-item">
+      <div class="project-info">
+        <p class="project-num">03 &mdash; Creative Tool</p>
+        <h3 class="project-title">PixelForge Drawing App</h3>
+        <p class="project-desc">A browser-based pixel art editor with colour palettes, fill bucket, eraser, grid resizing, undo history, and PNG export — built entirely in vanilla JS.</p>
+        <div class="project-tags">
+          <span class="tag">HTML5 Canvas</span>
+          <span class="tag">Vanilla JS</span>
+          <span class="tag">CSS</span>
+        </div>
+        <div class="project-links">
+          <button class="btn" onclick="openApp('pixelforge.html','PixelForge Drawing App')">Live App ↗</button>
+          <a href="#" class="btn btn-ghost">GitHub</a>
+        </div>
+      </div>
+      <div class="project-img" onclick="openApp('pixelforge.html','PixelForge Drawing App')">
+        <div class="preview-overlay">Preview App</div>
+        <div class="mock">
+          <div class="mock-line hi">// PixelForge &mdash; Canvas</div>
+          <div class="mock-line dim">────────────────────</div>
+          <div class="mock-line">🖌️ Brush &nbsp; ⬜ Erase &nbsp; 🪣 Fill</div>
+          <div class="mock-line dim">Size: 16×16 &nbsp; Zoom: 24px</div>
+          <div class="mock-line dim">────────────────────</div>
+          <div class="mock-line">▓▓▓▓░░░░▓▓▓▓░░░░</div>
+          <div class="mock-line">░░▓▓▓▓░░░░▓▓▓▓░░</div>
+          <div class="mock-line">▓▓░░▓▓▓▓▓▓░░▓▓▓▓</div>
+          <div class="mock-line dim">────────────────────</div>
+          <div class="mock-line purple">Export PNG &bull; Undo (Ctrl+Z)</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Project 4 -->
+    <div class="project-item">
+      <div class="project-info">
+        <p class="project-num">04 &mdash; Productivity</p>
+        <h3 class="project-title">FlowTask Manager</h3>
+        <p class="project-desc">A clean task management app with project folders, drag-and-drop reordering, priority labels, due dates, and local storage persistence.</p>
+        <div class="project-tags">
+          <span class="tag">React</span>
+          <span class="tag">Local Storage</span>
+          <span class="tag">CSS Modules</span>
+        </div>
+        <div class="project-links">
+          <button class="btn" onclick="openApp('flowtask.html','FlowTask Manager')">Live App ↗</button>
+          <a href="#" class="btn btn-ghost">GitHub</a>
+        </div>
+      </div>
+      <div class="project-img" onclick="openApp('flowtask.html','FlowTask Manager')">
+        <div class="preview-overlay">Preview App</div>
+        <div class="mock">
+          <div class="mock-line hi">// FlowTask &mdash; Board</div>
+          <div class="mock-line dim">────────────────────</div>
+          <div class="mock-line">📁 Personal &nbsp;📁 Work</div>
+          <div class="mock-line dim">────────────────────</div>
+          <div class="mock-line">☑️ &nbsp;Design mockups&nbsp; 🔴</div>
+          <div class="mock-line">☑️ &nbsp;Write unit tests&nbsp; 🟡</div>
+          <div class="mock-line dim">⬜ &nbsp;Deploy to prod&nbsp;&nbsp; 🟢</div>
+          <div class="mock-line dim">⬜ &nbsp;Code review&nbsp;&nbsp;&nbsp;&nbsp; 🟢</div>
+          <div class="mock-line dim">────────────────────</div>
+          <div class="mock-line purple">2 of 4 complete</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Project 5 -->
+    <div class="project-item">
+      <div class="project-info">
+        <p class="project-num">05 &mdash; Booking System</p>
+        <h3 class="project-title">BnB Booking Platform</h3>
+        <p class="project-desc">A full-stack Bed &amp; Breakfast booking system with room availability search, AJAX-powered filtering, session auth, CRUD operations, and live deployment.</p>
+        <div class="project-tags">
+          <span class="tag">PHP</span>
+          <span class="tag">MySQL</span>
+          <span class="tag">AJAX</span>
+          <span class="tag">jQuery</span>
+          <span class="tag">InfinityFree</span>
+        </div>
+        <div class="project-links">
+          <button class="btn" onclick="openApp('bnbbooking.html','BnB Booking Platform')">Live App ↗</button>
+          <a href="#" class="btn btn-ghost">GitHub</a>
+        </div>
+      </div>
+      <div class="project-img" onclick="openApp('bnbbooking.html','BnB Booking Platform')">
+        <div class="preview-overlay">Preview App</div>
+        <div class="mock">
+          <div class="mock-line hi">// BnB &mdash; Availability</div>
+          <div class="mock-line dim">────────────────────</div>
+          <div class="mock-line">Check-in:  2025-06-01</div>
+          <div class="mock-line">Check-out: 2025-06-05</div>
+          <div class="mock-line dim">────────────────────</div>
+          <div class="mock-line">🟢 Deluxe Room &nbsp;&nbsp; $120/n</div>
+          <div class="mock-line">🟢 Garden Suite &nbsp; $150/n</div>
+          <div class="mock-line dim">🔴 Ocean View &nbsp;&nbsp;&nbsp; FULL</div>
+          <div class="mock-line dim">────────────────────</div>
+          <div class="mock-line purple">AJAX search &bull; 2 available</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section id="contact">
+  <p class="section-label">Get In Touch</p>
+  <h2>Contact.</h2>
+  <div class="contact-wrap reveal">
+    <p class="contact-desc">Have a project in mind or want to work together? Drop me a message and I'll get back to you as soon as possible.</p>
+
+    <div class="form-row">
+      <div class="form-field">
+        <label for="name">Name</label>
+        <input type="text" id="name" placeholder="Your name" />
+      </div>
+      <div class="form-field">
+        <label for="email">Email</label>
+        <input type="email" id="email" placeholder="your@email.com" />
+      </div>
+    </div>
+    <div class="form-field">
+      <label for="subject">Subject</label>
+      <input type="text" id="subject" placeholder="What's this about?" />
+    </div>
+    <div class="form-field">
+      <label for="message">Message</label>
+      <textarea id="message" rows="5" placeholder="Your message..."></textarea>
+    </div>
+    <button class="form-submit" onclick="handleSubmit()">Send Message &rarr;</button>
+
+    <div class="social-links">
+      <a href="https://github.com/" target="_blank">GitHub</a>
+      <a href="mailto:your@email.com">Email</a>
+      <a href="https://linkedin.com/in/" target="_blank">LinkedIn</a>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <span>SARWESHWOR &copy; 2025</span>
+  <span style="color:var(--accent)">Built with HTML, CSS &amp; JS</span>
+</footer>
+
+<!-- APP PREVIEW MODAL -->
+<div id="app-modal">
+  <div class="modal-backdrop" onclick="closeApp()"></div>
+  <div class="modal-window">
+    <div class="modal-bar">
+      <div class="modal-dots"><span></span><span></span><span></span></div>
+      <span class="modal-title" id="modal-title">App Preview</span>
+      <a id="modal-newtab" href="#" target="_blank" class="modal-open-tab">Open in new tab ↗</a>
+      <button class="modal-close" onclick="closeApp()">✕ Close</button>
+    </div>
+    <iframe class="modal-iframe" id="modal-iframe" src="" allow="fullscreen"></iframe>
+  </div>
+</div>
+
+<script>
+  // Scroll reveal
+  const reveals = document.querySelectorAll('.reveal');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry, i) => {
+      if (entry.isIntersecting) {
+        setTimeout(() => entry.target.classList.add('visible'), i * 80);
+      }
+    });
+  }, { threshold: 0.1 });
+  reveals.forEach(el => observer.observe(el));
+
+  // Nav active state
+  const sections = document.querySelectorAll('section[id]');
+  const navLinks = document.querySelectorAll('.nav-links a');
+  window.addEventListener('scroll', () => {
+    let current = '';
+    sections.forEach(s => {
+      if (window.scrollY >= s.offsetTop - 100) current = s.id;
+    });
+    navLinks.forEach(a => {
+      a.style.color = a.getAttribute('href') === `#${current}` ? 'var(--accent)' : '';
+    });
+  });
+
+  // Form submit
+  function handleSubmit() {
+    const name = document.getElementById('name').value;
+    const email = document.getElementById('email').value;
+    const message = document.getElementById('message').value;
+    if (!name || !email || !message) {
+      alert('Please fill in all required fields.');
+      return;
+    }
+    alert('Thanks for reaching out! I\'ll get back to you soon.');
+  }
+
+  // App modal
+  function openApp(file, title) {
+    const modal = document.getElementById('app-modal');
+    const iframe = document.getElementById('modal-iframe');
+    const label = document.getElementById('modal-title');
+    const newTab = document.getElementById('modal-newtab');
+    label.textContent = title;
+    iframe.src = file;
+    newTab.href = file;
+    modal.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeApp() {
+    const modal = document.getElementById('app-modal');
+    const iframe = document.getElementById('modal-iframe');
+    modal.classList.remove('open');
+    document.body.style.overflow = '';
+    setTimeout(() => { iframe.src = ''; }, 300);
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closeApp();
+  });
+</script>
+</body>
+</html>
