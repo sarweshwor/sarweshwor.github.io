@@ -788,7 +788,7 @@
   <div class="contact-wrap reveal">
     <p class="contact-desc">Have a project in mind or want to work together? Drop me a message and I'll get back to you as soon as possible.</p>
 
-    <form id="contact-form" action="https://formspree.io/f/xqewjypa" method="POST">
+    <form id="contact-form">
     <div class="form-row">
       <div class="form-field">
         <label for="name">Name</label>
@@ -865,7 +865,7 @@
     });
   });
 
-  // Form submit via Formspree
+  // Contact form - Web3Forms (no domain restrictions)
   const contactForm = document.getElementById('contact-form');
   if (contactForm) {
     contactForm.addEventListener('submit', async function(e) {
@@ -877,25 +877,33 @@
       btn.disabled = true;
       success.style.display = 'none';
       error.style.display = 'none';
+      const data = {
+        access_key: "ce40c6dc-d1e0-46f9-af5d-bfbb6e9b2c91",
+        name: document.getElementById('name').value,
+        email: document.getElementById('email').value,
+        subject: document.getElementById('subject').value || 'Portfolio Contact',
+        message: document.getElementById('message').value,
+        from_name: "Portfolio Contact Form",
+        to_email: "sarweshworbhatta@gmail.com"
+      };
       try {
-        const res = await fetch('https://formspree.io/f/xqewjypa', {
+        const res = await fetch('https://api.web3forms.com/submit', {
           method: 'POST',
-          headers: { 'Accept': 'application/json' },
-          body: new FormData(contactForm)
+          headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+          body: JSON.stringify(data)
         });
-        if (res.ok) {
+        const json = await res.json();
+        if (json.success) {
           success.style.display = 'block';
           contactForm.reset();
-          btn.textContent = 'Send Message →';
-          btn.disabled = false;
         } else {
           throw new Error('Failed');
         }
       } catch {
         error.style.display = 'block';
-        btn.textContent = 'Send Message →';
-        btn.disabled = false;
       }
+      btn.textContent = 'Send Message →';
+      btn.disabled = false;
     });
   }
 
